@@ -1,0 +1,86 @@
+{
+	"name":  "Port",
+	"version": "1",
+	"uuid": "c2749599-117a-4005-b5ff-692dfef95d6e",
+	"module_name": "actuator_dac5578.manager",
+	"class_name": "ActuatorDAC5578Manager",
+	"parameters": {
+		"variables": {
+			"sensor": null,
+			"actuator": {
+				"output_variable": {
+					"name": {
+						"type": "object", 
+						"default": "port_state"
+					}
+				}
+			}
+		},	
+		"communication": {
+			"bus": {
+				"type": "integer",
+				"default": "none"
+			},
+			"mux": {
+				"type": "string",
+				"default": "none"
+			},
+			"channel": {
+				"type": "integer",
+				"default": "none"
+			},
+			"address": {
+				"type": "string",
+				"default": "0x4A"
+			},
+			"port": {
+				"type": "number",
+				"default": 0
+			},
+			"is_active_high": {
+				"type": "boolean",
+				"default": true
+			}
+		}
+	},
+	"events": [
+	    {
+	        "name": "Reset",
+	        "description": "Reset actuator.",
+	        "value": null,
+	        "sequence": null
+	    },
+	    {
+	        "name": "Shutdown",
+	        "description": "Shutdown actuator.",
+	        "value": null,
+	        "sequence": null
+	    },
+	    {
+	        "name": "Enable Manual Mode",
+	        "description": "Allows actuator to be controlled by manual events.",
+	        "value": null,
+	        "sequence": null
+	    },
+	    {
+	        "name": "Turn On",
+	        "description": "Turn on port.",
+	        "value": null,
+	        "sequence": null,
+	        "is_manual": true
+	    },
+	    {
+	        "name": "Turn Off",
+	        "description": "Turns off port.",
+	        "value": null,
+	        "sequence": null,
+	        "is_manual": true
+	    }
+	],
+	"info": {
+		"variables": {
+			"sensor": null,
+			"actuator": null
+		}
+	}
+}

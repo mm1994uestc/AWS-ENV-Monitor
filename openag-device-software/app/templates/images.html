@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block javascript %}
+<script>
+  var images = [] // global image file names
+
+  window.onload = function() {
+
+    // Load filepaths
+    var filepaths_json = document.getElementById("filepaths-json").value;
+    var filepaths = JSON.parse(filepaths_json);
+
+    // Check if stored images exists
+    if (filepaths.length < 1) {
+      console.log("No stored images");
+      $('#no-images-collapse').collapse("show");
+      $('#images-collapse').collapse("hide");
+      return
+    }
+
+    // Push images to be hosted
+    console.log("Pushing images to be hosted")
+    for(var i=0; i<filepaths.length; i++) {
+      var filepath = filepaths[i];
+      console.log("filepath = " + filepath);
+      images.push(filepath)
+    }
+
+    // Update slider
+    var slideO = document.getElementById("image-slider");
+    slideO.max = images.length - 1;
+    slideO.value = images.length - 1; // farthest to the right
+    var slider = $("#image-slider");
+    slider.on("input change", showImage);
+    showImage();
+
+    // Update view
+    $('#no-images-collapse').collapse("hide");
+    $('#images-collapse').collapse("show");
+  }
+
+  function getOriginFromURL(href) {
+    var anchor = document.createElement("a");
+    anchor.href = href;
+    return anchor.origin;
+  }
+
+  function showImage() {
+    var slider = $("#image-slider");
+    var img = document.getElementById("image");
+    img.src = 'http://localhost:8088/' + images[ slider.val() ];
+    console.log(`Showing image from: ${img.src}`)
+    var fn = $("#file_name");
+    var fntext = images[ slider.val() ];
+    fntext = fntext.replace( /_/g, ' ' ); // replace all '_' with ' '
+    fntext = fntext.replace( '.png', '' );
+    fn.text( fntext );
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<html>
+   <input type="hidden" id="filepaths-json" name="variable" value="{{filepaths_json}}">
+   <body>
+      <div class="images">
+        <h2>Images</h2>
+            <div class="card">
+              <div class="collapse" id="no-images-collapse">
+                No stored images, please wait for your device to capture images...
+              </div>
+              <div class="collapse" id="images-collapse">
+                <div class="text-center"><span id="file-name"></span></div>
+                <form class="range-field">
+                  <input id="image-slider" class="no-border w-100" type="range" value="0" min="0" max="0" />
+                </form>
+                <div class="text-center">
+                  <img id="image" src="" class="img-thumbnail">
+                </div>
+              </div>
+            </div>
+      </div>
+   </body>
+</html>
+{% endblock %}

@@ -1,0 +1,5 @@
+CALIBRATE_DRY = "Dry Calibration"
+CALIBRATE_SINGLE = "Single Point Calibration"
+CALIBRATE_LOW = "Low Point Calibration"
+CALIBRATE_HIGH = "High Point Calibration"
+CLEAR_CALIBRATION = "Clear Calibration"

@@ -1,0 +1,5 @@
+RESET = "Reset"
+SHUTDOWN = "Shutdown"
+SET_SAMPLING_INTERVAL = "Set Sampling Interval"
+ENABLE_CALIBRATION_MODE = "Enable Calibration Mode"
+ENABLE_MANUAL_MODE = "Enable Manual Mode"

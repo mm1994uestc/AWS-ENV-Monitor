@@ -1,0 +1,591 @@
+{% extends 'base.html' %}
+
+{% block javascript %}
+<script>
+
+  window.onload = function() {
+
+    var peripheralData = {
+      setups: null,
+      states: null,
+      sensorVariables: null,
+      actuatorVariables: null
+    };
+
+    // Create peripheral cards based off stored data in db
+    loadPeripheralSetups()
+      .then(function(peripheralSetups) {
+        console.log(peripheralSetups);
+        peripheralData.setups = peripheralSetups;
+        return loadPeripheralStates();
+      })
+      .then(function(peripheralStates) {
+        console.log(peripheralStates);
+        peripheralData.states = peripheralStates;
+        return loadSensorVariables();
+      })
+      .then(function(sensorVariables) {
+        console.log(sensorVariables);
+        peripheralData.sensorVariables = sensorVariables;
+        return loadActuatorVariables();
+      })
+      .then(function(actuatorVariables) {
+        console.log(actuatorVariables);
+        peripheralData.actuatorVariables = actuatorVariables;
+        return createPeripheralsDict(peripheralData);
+      })
+      .then(function(peripheralsDict) {
+        console.log(peripheralsDict);
+        createPeripheralCards(peripheralsDict);
+      })
+      .catch(function(error) {
+        console.log(error);
+      })
+  };
+
+  function loadPeripheralSetups() {
+    return new Promise(function (resolve, reject) {
+      console.log("Loading peripheral setups")
+      $.ajax({
+          url: "/api/peripheral/setups/",
+          type: "GET",
+          data: {"csrfmiddlewaretoken": "{{ csrf_token }}"},
+          dataType: "json",
+          success: function(data) {;
+            var peripheralSetups = data;
+            resolve(peripheralSetups);
+          },
+          error: function(data) {
+            console.log("Load peripheral setups failed");
+            reject(data);
+          }
+      });
+    })
+  }
+
+  function loadPeripheralStates() {
+    return new Promise(function (resolve, reject) {
+      console.log("Loading peripheral states")
+      $.ajax({
+        url: "/api/state/",
+        type: "GET",
+        data: {"csrfmiddlewaretoken": "{{ csrf_token }}"},
+        dataType: "json",
+        success: function(data) {
+          var state = data[0];
+          console.log("state = ", state); 
+          var peripheralStates = JSON.parse(state["peripherals"]);
+          resolve(peripheralStates);
+        },
+        error: function(data) {
+          console.log("Load peripheral states failed");
+          reject(data);
+        }
+      });
+    })
+  }
+
+  function loadSensorVariables() {
+    return new Promise(function (resolve, reject) {
+      console.log("Loading sensor variables")
+      $.ajax({
+          url: "/api/variables/sensor/",
+          type: "GET",
+          data: {"csrfmiddlewaretoken": "{{ csrf_token }}"},
+          dataType: "json",
+          success: function(data) {;
+            var sensorVariables = {};
+            
+            // Format data
+            for (index in data) {
+              json = JSON.parse(data[index]["json"])
+              sensorVariables[json["key"]] = json["info"]
+            }
+
+            resolve(sensorVariables);
+          },
+          error: function(data) {
+            console.log("Load sensor variables failed");
+            reject(data);
+          }
+      });
+    })
+  }
+
+  function loadActuatorVariables() {
+    return new Promise(function (resolve, reject) {
+      console.log("Loading actuator variables")
+      $.ajax({
+          url: "/api/variables/actuator/",
+          type: "GET",
+          data: {"csrfmiddlewaretoken": "{{ csrf_token }}"},
+          dataType: "json",
+          success: function(data) {;
+            var actuatorVariables = {};
+
+            // Format data
+            for (index in data) {
+              json = JSON.parse(data[index]["json"])
+              actuatorVariables[json["key"]] = json["info"]
+            }
+
+            resolve(actuatorVariables);
+          },
+          error: function(data) {
+            console.log("Load actuator variables failed");
+            reject(data);
+          }
+      });
+    })
+  }
+
+  function createPeripheralsDict(peripheralData) {
+    return new Promise(function (resolve, reject) {
+      console.log("Creating peripherals dict");
+
+      // TODO: add error handling
+      console.log("PeripheralData = ", peripheralData)
+
+      // Initialize peripherals dict
+      peripheralsDict = []
+
+      // Loop through each active peripheral
+      for (var peripheralName in peripheralData.states) {
+        console.log(peripheralName, peripheralData.states[peripheralName]);
+        
+        // Get reported sensor values
+        reportedSensors = [];
+        if ("reported_sensor" in peripheralData.states[peripheralName]) {
+          reportedSensorDict = peripheralData.states[peripheralName]["reported_sensor"]
+
+          // Build reported sensors list
+          for (var key in reportedSensorDict) {
+            if (key in peripheralData.sensorVariables) {
+                var value = reportedSensorDict[key];
+                
+                if (value == null) {
+                  value = "None";
+                }
+
+                var reportedSensor = {
+                  name:peripheralData.sensorVariables[key]["name"]["brief"],
+                  value: value,
+                  unit: peripheralData.sensorVariables[key]["unit"]["brief"]
+              }
+              console.log(reportedSensor)
+              reportedSensors.push(reportedSensor);
+            }
+          } 
+        }
+
+        // Get reported actuator values
+        reportedActuators = [];
+        if ("reported_actuator" in peripheralData.states[peripheralName]) {
+          reportedActuatorDict = peripheralData.states[peripheralName]["reported_actuator"]
+
+          // Build reported sensors list
+          for (var key in reportedActuatorDict) {
+            if (key in peripheralData.actuatorVariables) {
+                var value = reportedActuatorDict[key];
+                
+                if (value == null) {
+                  value = "None";
+                }
+
+                var reportedActuator = {
+                  name:peripheralData.actuatorVariables[key]["name"]["brief"],
+                  value: value,
+                  unit: peripheralData.actuatorVariables[key]["unit"]["brief"]
+              }
+              console.log(reportedActuator)
+              reportedActuators.push(reportedActuator);
+            }
+          }
+        }
+
+        // Get each active peripherals setup uuid
+        setupUUID = peripheralData.states[peripheralName]["setup_uuid"];
+        mode = peripheralData.states[peripheralName]["mode"];
+
+        // Get setup json for each peripheral from setup uuid
+        for (var i in peripheralData.setups) {
+          if (setupUUID == peripheralData.setups[i]["uuid"]) {
+            setupJSON = JSON.parse(peripheralData.setups[i]["json"])
+
+            // Create peripheral card entry in peripheral dict
+            peripheralsDict.push({
+              name: peripheralName,
+              mode: mode,
+              reportedSensors: reportedSensors,
+              reportedActuators: reportedActuators,
+              events: setupJSON["events"]
+            })
+            break;
+          }
+        }
+
+
+      }
+      resolve(peripheralsDict);
+    })
+  }
+
+
+  function createPeripheralCards(peripherals) { 
+    console.log("Creating peripheral cards");
+
+    for (peripheral_index in peripherals) {
+      peripheral = peripherals[peripheral_index]
+      console.log("Creating peripheral card for: " + peripheral.name)
+
+      // Create peripheral card template
+      var peripheralCardTemplate = `
+        <div id="${lowerCamel(peripheral.name)}" class="card">
+          <div id="${lowerCamel(peripheral.name)}Header" class="card-header">
+            <h4>${peripheral.name}</h4>
+
+          </div>
+        </div>
+        `
+      // Create peripheral card in DOM
+      cardColumns = document.getElementById('card-columns');
+      cardColumns.insertAdjacentHTML('beforeend', peripheralCardTemplate);
+
+      // Get peripheral card instance
+      peripheralCardInstance = document.getElementById(lowerCamel(peripheral.name));
+      peripheralCardHeader = document.getElementById(lowerCamel(peripheral.name) + 'Header');
+
+
+      // Create mode badges
+      console.log("Creating mode badge")
+      console.log("peripheral.mode = ", peripheral.mode)
+
+      if (peripheral.mode == "NORMAL") {
+        var reportedValueTemplate = `<a class="badge badge-success" data-toggle="collapse" href="" role="button";">Mode: ${peripheral.mode}</a>`
+      }
+      else if ((peripheral.mode == "INIT") || (peripheral.mode == "SETUP")) {
+        var reportedValueTemplate = `<a class="badge badge-warning" data-toggle="collapse" href="" role="button";">Mode: ${peripheral.mode}</a>`
+      }
+      else if ((peripheral.mode == "CALIBRATE") || (peripheral.mode == "MANUAL")) {
+        var reportedValueTemplate = `<a class="badge badge-info" data-toggle="collapse" href="" role="button";">Mode: ${peripheral.mode}</a>`
+      }
+      else {
+        var reportedValueTemplate = `<a class="badge badge-danger" data-toggle="collapse" href="" role="button";">Mode: ${peripheral.mode}</a>`
+      }
+
+      // var reportedValueTemplate = `<a class="badge badge-secondary" data-toggle="collapse" href="" role="button";">Mode: ${peripheral.mode}</a>`
+      peripheralCardHeader.insertAdjacentHTML('beforeend', reportedValueTemplate);
+
+
+      // Create reported sensor value badges
+      console.log("Creating reported sensor value badges")
+
+      for (index in peripheral.reportedSensors) {
+
+        // Build badge string
+        reportedSensor = peripheral.reportedSensors[index];
+
+        // Stringify values
+        value = reportedSensor["value"]
+        if (typeof(value) == "object") {
+          value = JSON.stringify(value);
+        }
+
+        var badgeString = reportedSensor["name"] + " (" + reportedSensor["unit"] + "): " + value;
+
+        // Inject badge string
+        var reportedValueTemplate = `
+          <a class="badge badge-secondary" data-toggle="collapse" href="" role="button";">${badgeString}</a>
+        `
+        peripheralCardHeader.insertAdjacentHTML('beforeend', reportedValueTemplate);
+      }
+
+      // Create reported actuator value badges
+      console.log("Creating reported actuator value badges")
+
+      for (index in peripheral.reportedActuators) {
+
+        // Build badge string
+        reportedActuator = peripheral.reportedActuators[index];
+        console.log(reportedActuator)
+
+        // Stringify values
+        value = reportedActuator["value"]
+        if (typeof(value) == "object") {
+          value = JSON.stringify(value);
+        }
+
+        var badgeString = reportedActuator["name"] + " (" + reportedActuator["unit"] + "): " + value;
+
+        // Inject badge string
+        var reportedValueTemplate = `
+          <a class="badge badge-secondary" data-toggle="collapse" href="" role="button";">${badgeString}</a>
+        `
+        peripheralCardHeader.insertAdjacentHTML('beforeend', reportedValueTemplate);
+      }
+
+      // Add peripheral event buttons to peripheral card header
+      for (i in peripheral.events) {
+        // Parse parameters
+        event = peripheral.events[i]
+        event.id = lowerCamel(peripheral.name) + upperCamel(event.name)
+
+        console.log("Creating event card for: " + peripheral.name + ": " + event.name)
+
+        // Create event buttons
+        var eventButtonTemplate = `
+          <a class="badge badge-secondary" data-toggle="collapse" href="" role="button" onclick="showEvent('${event.id}');">${event.name}</a>
+        `
+        peripheralCardHeader.insertAdjacentHTML('beforeend', eventButtonTemplate);
+
+        // Create non-sequenced event cards
+        if (event.sequence == null) {
+          var eventCardTemplate = 
+          `<div id="${event.id}Card" class="collapse" >
+            <div class="card-body">
+              <h5 class="card-title">${event.name}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">${event.description}</h6>
+              ${event.value ? 
+                `<div class="input-group mb-3">
+                  <input type="text" id="${event.id}Value" name="${event.id}Value" placeholder="${event.value.default}" required>
+                  <div class="input-group-append">
+                    <span class="input-group-text" id="basic-addon2">${event.value.unit}</span>
+                  </div>
+                </div>`
+              : ''}
+              <p><button class="btn" type="button" onClick="createPeripheralEvent('${peripheral.name}','${event.name}','${event.id}')"><i class="icon-share"></i>${event.name}</button></p>
+              <div class="alert alert-success alert-dismissible fade collapse" role="alert" id="${event.id}SuccessAlert"><span id="${event.id}SuccessAlertMessage"></span></div>
+
+              <div class="alert alert-danger alert-dismissible fade collapse" role="alert" id="${event.id}ErrorAlert"><span id="${event.id}ErrorAlertMessage"></span></div>
+              <div class="collapse" id="${event.id}NextButton">
+                <button class="btn" type="button" data-target="#${event.id}Card" data-toggle="collapse" style="float: right;">Done</button>
+              </div>
+            </div>
+          </div>`
+          peripheralCardInstance.insertAdjacentHTML('beforeend', eventCardTemplate);
+        }
+
+        // Create sequenced event cards
+        else {
+          var eventCardHeadTemplate = `
+            <div class="collapse" id="${event.id}Card">
+              <div id="${event.id}Carousel" class="carousel slide" data-ride="carousel" data-interval=false>
+
+                <div class="carousel-inner">
+                  <!-- HEAD SLIDE -->
+                  <div class="carousel-item active">
+                    <div class="card-body">
+                      <h5 class="card-title">${event.name}</h5>
+                      <h6 class="card-subtitle mb-2 text-muted">${event.description}</h6>
+                      <button class="btn" type="button" data-target="#${event.id}Carousel" data-slide="next" style="float: right;">Next</button>
+                    </div>
+                  </div>`
+
+          var eventCardBodyTemplate = `<!-- BODY SLIDES -->`
+          for (i in event.sequence) {
+            sequence = event.sequence[i]
+            sequence.id = event.id + upperCamel(sequence.name)
+
+            // Create slides w/optional value for each sequence in event 
+            eventCardBodyTemplate += `  
+              <div class="carousel-item">
+                <div class="card-body">
+                  <h5 class="card-title">${sequence.name}</h5>
+                  <h6 class="card-subtitle mb-2 text-muted">${sequence.description}</h6>
+                  
+
+                  ${sequence.value ? 
+                    `<div class="input-group mb-3">
+                      <input type="text" id="${sequence.id}Value" name="${sequence.id}Value" placeholder="${sequence.value.default}" required>
+                      <div class="input-group-append">
+                        <span class="input-group-text" id="basic-addon2">${sequence.value.unit}</span>
+                      </div>
+                    </div>`
+                  : ''}   
+
+                  <p><button class="btn" type="button" onClick="createPeripheralEvent('${peripheral.name}','${sequence.name}', '${sequence.id}')"><i class="icon-share"></i>${sequence.name}</button></p>
+                  <div class="alert alert-success alert-dismissible fade collapse" role="alert" id="${sequence.id}SuccessAlert"><span id="${sequence.id}SuccessAlertMessage"></span></div>
+                  <div class="alert alert-danger alert-dismissible fade collapse" role="alert" id="${sequence.id}ErrorAlert"><span id="${sequence.id}ErrorAlertMessage"></span></div>
+                  <div class="collapse" id="${sequence.id}NextButton">
+                    <button class="btn" type="button" onClick="nextEvent('${event.id}', '${sequence.id}')" style="float: right;">Next</button>
+                  </div>
+                </div>
+              </div>
+            `
+          }
+
+          var eventCardFooterTemplate = `
+                        <!-- FOOTER SLIDE -->
+                        <div class="carousel-item">
+                          <div class="card-body">
+                            <h5 class="card-title">Finished</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">Successfully completed ${event.name}.</h6>
+                            <button class="btn" type="button" data-target="#${event.id}Card" data-toggle="collapse" style="float: right;">Done</button>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`
+
+          var eventCardTemplate = eventCardHeadTemplate + "\n" + eventCardBodyTemplate + "\n" + eventCardFooterTemplate;
+          peripheralCardInstance.insertAdjacentHTML('beforeend', eventCardTemplate);
+        }
+      }
+    }
+  }
+
+
+  function createPeripheralEvent(recipient, event_name, event_id) {
+     /* Creates peripheral event. */
+     console.log("Creating peripheral event for: " + recipient + ": " + event_name)
+
+     // Get function parameters
+     base_name = "#" + event_id;
+     var value = $(base_name + "Value").val();
+
+     // Create recipient and request dicts
+     recipient =  {
+         "type": "Peripheral",
+         "name": recipient};
+     request = {
+         "type": event_name,
+         "value": value};
+
+     // Send create event request to endpoint
+     $.ajax({
+         url: "/api/event/",
+         type: "POST",
+         data: {
+           "csrfmiddlewaretoken": "{{ csrf_token }}",
+           "recipient": JSON.stringify(recipient),
+           "request": JSON.stringify(request)
+         },
+         dataType: 'json',
+         success: function(data) {
+          console.log("Event request succeeded")
+
+          // Get response message
+          message = data.message
+          console.log("Alert message: " + message)
+           
+          // Set alert message
+          document.getElementById(event_id + "SuccessAlertMessage").innerHTML = message;
+
+          // Hide error alert
+          $(base_name + "ErrorAlert").collapse("hide");
+
+          // Show alert
+          $(base_name + "SuccessAlert").collapse("show");
+
+          // Show next button
+          $(base_name + "NextButton").collapse("show");
+        },
+        error: function(data) {
+           console.log("Event request failed")
+
+           // Get response message
+           response_dict = JSON.parse(data.responseText)
+           message = response_dict["message"]
+           console.log("Alert message: " + message)
+       
+           // Set alert message
+           document.getElementById(event_id + "ErrorAlertMessage").innerHTML = message;
+
+           // Hide success alert
+           $(base_name + "SuccessAlert").collapse("hide");
+
+           // Show alert
+           $(base_name + 'ErrorAlert').collapse('show');
+         },
+         complete: function(data) {
+         }
+     }); 
+  }
+
+
+  function lowerCamel(str){
+    return str
+      .replace(/\s(.)/g, function($1) { return $1.toUpperCase(); })
+      .replace(/\s/g, '')
+      .replace(/^(.)/, function($1) { return $1.toLowerCase(); });
+  }
+
+
+  function upperCamel(str) {
+    str = lowerCamel(str)
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function expand(event_id) {
+    console.log("Expanding card for: " + event_id);
+
+    base_name = "#" + event_id;
+    event_card = base_name + "Card";
+
+    // Hide alert messages
+    $(base_name + 'ErrorAlert').collapse('hide');
+    $(base_name + 'SuccessAlert').collapse('hide');
+    
+    // Hide all other events
+    $(".collapse").collapse('hide');
+
+    // Toggle provided event
+    $(event_card).collapse('toggle');
+   }
+
+
+  function showEvent(event_id) {
+    // Get base name
+    base_name = "#" + event_id
+
+    // Reset carousel
+    carousel_name = base_name + "Carousel"
+    $(carousel_name).carousel(0)
+
+    // Hide next buttons
+    $('#nextButton').collapse('hide');
+
+    // Hide alerts
+    $(base_name + 'SuccessAlert').collapse('hide');
+    $(base_name + 'ErrorAlert').collapse('hide');
+
+    // Expand event
+    expand(event_id)
+  }
+
+
+  function nextEvent(event_id, sequence_id) {
+    console.log("Initiating next event")
+
+    base_event_name = "#" + event_id
+    base_event_sequence_name = "#" + sequence_id
+
+    // Advance carousel
+    $(base_event_name + 'Carousel').carousel('next');
+
+    // Hide alerts, assume only process on success
+    $(base_event_sequence_name + 'SuccessAlert').collapse('hide');
+
+    // Hide next button
+    $(base_event_sequence_name + 'NextButton').collapse('hide');
+
+  }
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<div class="peripherals"></br>
+  <h2>Peripherals</h2>
+  <div id="card-columns" class="card-columns">
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,87 @@
+{
+	"name":  "CCS811 Carbon Dioxide Sensor",
+	"version": "1",
+	"uuid": "40a1452c-3326-4464-8f49-51c09bec753a",
+	"module_name": "ccs811.manager",
+	"class_name": "CCS811Manager",
+	"parameters": {
+		"variables": {
+			"sensor": {
+				"co2_ppm": {
+					"name": {
+						"type": "string", 
+						"default": "air_carbon_dioxide_ppm"
+					}
+				},
+				"tvoc_ppb": {
+					"name": {
+						"type": "string",
+						"default": "air_total_volatile_organic_compounds_ppb"
+					}
+				}
+			},
+			"compensation": {
+				"temperature_celsius": {
+					"name": {
+						"type": "string",
+						"default": "air_temperature_celsius"
+					}
+				},
+				"humidity_percent": {
+					"name": {
+						"type": "string",
+						"default": "air_humidity_percent"
+					}
+				}
+			},
+			"actuator": null
+		},	
+		"communication": {
+			"bus": {
+				"type": "integer",
+				"default": 2
+			},
+			"mux": {
+				"type": "string",
+				"default": "0x77"
+			},
+			"channel": {
+				"type": "integer",
+				"default": 2
+			},
+			"address": {
+				"type": "string",
+				"default": "0x5b"
+			}
+		}
+	},
+	"events": [
+	    {
+	        "name": "Reset",
+	        "description": "Reset sensor.",
+	        "value": null,
+	        "sequence": null
+	    },
+	    {
+	        "name": "Shutdown",
+	        "description": "Shutdown sensor.",
+	        "value": null,
+	        "sequence": null
+	    },
+	    {
+	        "name": "Set Sampling Interval",
+	        "description": "Sets sampling interval.",
+	        "value": {
+	            "default": 10,
+	            "unit": "Seconds"
+	        },
+	        "sequence": null
+	    }
+	],
+	"info": {
+		"variables": {
+			"sensor":null,
+			"actuator": null
+		}
+	}
+}

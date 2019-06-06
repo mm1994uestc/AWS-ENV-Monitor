@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<html>
+   <body>
+      <div class="resources">
+        <h2>Resources</h2>
+         <div class="card">
+            <ul>
+              <li><b>Status:</b> {{ status }}
+              <li><b>Free Disk:</b> {{ free_disk }}
+              <li><b>Free Memory:</b> {{ free_memory }}
+            </ul>
+         </div>
+      </div>
+   </body>
+</html>
+{% endblock %}

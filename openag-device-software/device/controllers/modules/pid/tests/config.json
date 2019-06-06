@@ -1,0 +1,24 @@
+{   
+    "format": "openag-standard-v1",
+    "name": "PID Test Config",
+    "uuid": "5bc9a15c-7e8b-4089-aa96-b03b09a28259",
+    "peripherals": null,
+    "controllers": [
+        {
+            "name": "TemperatureController",
+            "type": "PIDController",
+            "uuid": "b981bc2f-1d08-438c-8a8e-06dcd4005064",
+            "parameters": {
+                "setup": {
+                    "name": "Temperature Controller Default",
+                    "file_name": "pid/setups/air_temperature"
+                },
+                "variables": {
+                    "sensor_name": "air_temperature_celsius",
+                    "positive_actuator_name": "air_heater",
+                    "negative_actuator_name": "air_chiller"
+                }
+            }
+        }
+    ]
+}

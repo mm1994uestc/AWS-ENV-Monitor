@@ -1,0 +1,66 @@
+[
+	{
+		"uuid": "d6d76ff9-b12e-47bb-8e83-f872c7870856",
+		"name": "Scarlet Kale",
+		"info": 
+		{
+			"description": {
+				"brief": "Red veined, tightly curled purple leaves.",
+				"verbose": "Remarkably attractive dark green kale with red veined, frilly, tightly curled leaves. A vigorous performer with good cold tolerance. Leaves darken to deep scarlet in late season. Begin harvesting leaves when young, and allow plant to grow well into the early winter. 24-36 inches tall by 24 inches wide, 60 days from transplant. 11,000 seeds/oz"
+			},
+			"link": "https://www.seedsavers.org/scarlet-kale",
+			"average_height_centimeters": 80,
+			"average_width_centimeters": 60,
+			"average_duration_days": 60,
+			"duration_start_stage": "seedling"
+		}
+	},
+	{
+		"uuid": "4b348702-6e23-40ac-aa89-597f06d64a26",
+		"name": "2.5 Year Old Hazelnut Tree",
+		"info": 
+		{
+			"description": {
+				"brief": "2.5 year old  Wepster hazelnut tree.",
+				"verbose": "2.5 year old hazelnut tree. Corylus avellana L. cultivar known as Wepster."
+			},
+			"link": "http://hortsci.ashspublications.org/content/49/3/346.full",
+			"average_height_centimeters": 50,
+			"average_width_centimeters": 25,
+			"average_duration_days": 35,
+			"duration_start_stage": "2.5 year old sapling"
+		}
+	},
+	{
+		"uuid": "9dc80135-0c24-4a65-ae0b-95f1c5e53676",
+		"name": "Genovese Basil",
+		"info": 
+		{
+			"description": {
+				"brief": "Classic large-leaved Italian sweet basil.",
+				"verbose": "This classic large-leaved Italian sweet basil, prized for its flavor and heady aroma, is a top pick for many cooks when making pesto. Fragrant plants grow 18-24 in. and produce densely branched plants when pinched back regularly."
+			},
+			"link": "https://www.seedsavers.org/genovese-basil-organic-herb",
+			"average_height_centimeters": 50,
+			"average_width_centimeters": 30,
+			"average_duration_days": 60,
+			"duration_start_stage": "seedling"
+		}
+	},
+	{
+		"uuid": "581d6309-1155-442f-8f50-9541a4005ea2",
+		"name": "Apollo Arugula",
+		"info": 
+		{
+			"description": {
+				"brief": "Improved Dutch strain of domesticated rocket.",
+				"verbose": "(Eruca sativa) Improved Dutch strain of domesticated rocket. Very large, rounded leaves are high in vitamin C. Excellent flavor and rarely bitter. Will produce 3-5 cuttings per sowing if kept well picked."
+			},
+			"link": "https://www.seedsavers.org/apollo-arugula",
+			"average_height_centimeters": 30,
+			"average_width_centimeters": 10,
+			"average_duration_days": 30,
+			"duration_start_stage": "seedling"
+		}
+	}
+]

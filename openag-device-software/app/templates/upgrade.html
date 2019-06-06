@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block javascript %}
+<script>
+  window.onload = function() {
+    var status = "{{status}}";
+    var upgradeAvailable = ("{{upgrade_available}}" == "True")
+    console.log(upgradeAvailable);
+    var currentVersion = "{{current_version}}";
+    var upgradeVersion = "{{upgrade_version}}";
+    updateView(status, upgradeAvailable, currentVersion, upgradeVersion);
+  }
+
+  function updateView(status, upgradeAvailable, currentVersion, upgradeVersion) {
+    console.log("Updating view");
+    console.log(upgradeAvailable);
+
+    // Display upgrade info
+    document.getElementById("status").innerHTML = status;
+    document.getElementById("current_version").innerHTML = currentVersion;
+    document.getElementById("upgrade_version").innerHTML = upgradeVersion;
+    
+    // Display upgrade or check-for-upgrade button
+    if (upgradeAvailable) {
+      $('#upgrade-button').collapse('show');
+      $('#check-for-upgrades-button').collapse('hide');
+    }
+    else {
+      $('#upgrade-button').collapse('hide');
+      $('#check-for-upgrades-button').collapse('show');
+    }
+  }
+
+  function checkForSoftwareUpgrades() {
+    console.log("Checking for software upgrades")
+    document.getElementById("status").innerHTML = 'Checking for software upgrades, this can take a few minutes...';
+    $('#check-for-upgrades-button').collapse('hide');
+    $.ajax({
+      url: "/api/upgrade/check/",
+      type: "GET",
+      data: {"csrfmiddlewaretoken": "{{ csrf_token }}"},
+      dataType: 'json',
+      success: function(data) {
+        console.log(data['message'])
+        updateView(data['status'], data['upgrade_available'], data['current_version'], data['upgrade_version']);
+      },
+      error: function(data) {
+        response_dict = JSON.parse(data.responseText)
+        message = response_dict["message"]
+        console.log(message);
+        updateView(response_dict['status'], response_dict['upgrade_available'], response_dict['current_version'], response_dict['upgrade_version']);
+      }
+    });
+  }
+
+  function upgradeSoftware() {
+    console.log("Upgrading software")
+    document.getElementById("status").innerHTML = 'Upgrading to latest version, restarting in a few minutes...';
+    $('#upgrade-button').collapse('hide');
+    $.ajax({
+      url: "/api/upgrade/upgrade/",
+      type: "GET",
+      data: {"csrfmiddlewaretoken": "{{ csrf_token }}"},
+      dataType: 'json',
+      success: function(data) {
+        console.log(data['message'])
+        updateView(response_dict['status'], response_dict['upgrade_available'], response_dict['current_version'], response_dict['upgrade_version']);
+      },
+      error: function(data) {
+        response_dict = JSON.parse(data.responseText)
+        message = response_dict["message"]
+        console.log(message);
+        updateView(response_dict['status'], response_dict['upgrade_available'], response_dict['current_version'], response_dict['upgrade_version']);
+      }
+    });
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<html>
+   <body>
+      <div class="upgrade">
+        <h2>Software Upgrade</h2>
+         <div class="card">
+            <ul>
+              <li><b>Status:</b> <span id="status"></span>
+              <li><b>Current Software Version:</b> <span id="current_version"></span>
+              <li><b>Available Software Upgrade to Version:</b> <span id="upgrade_version"></span>
+            </ul>
+            <div class="collapse" id="upgrade-button">
+              <a class="badge badge-secondary" data-toggle="collapse"
+                 style="width:200px" href="" role="button" 
+                 onclick="upgradeSoftware();">Upgrade the software</a> 
+            </div>
+            <div class="collapse" id="check-for-upgrades-button">
+              <a class="badge badge-secondary" data-toggle="collapse"
+                 style="width:200px" href="" role="button" 
+                 onclick="checkForSoftwareUpgrades();">Check for available upgrade</a> 
+            </div>
+         </div>
+      </div>
+   </body>
+</html>
+{% endblock %}
+
+

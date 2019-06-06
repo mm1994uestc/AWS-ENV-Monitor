@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% csrf_token %}
+
+<html>
+	<body>
+		<div class="events">
+		<h2>Events</h2>
+			{% for event in events %}
+			<div class="card">
+				<b>{{ event.timestamp }}</b>
+					<ul>
+						<li>Request: {{ event.request }}</li>
+						<li>Response: {{ event.response }}</li>
+					</ul>
+			</div>
+			{% endfor %}
+		</div>
+	</body>
+</html>
+{% endblock %}

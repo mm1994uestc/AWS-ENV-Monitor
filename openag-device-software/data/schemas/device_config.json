@@ -1,0 +1,19 @@
+{
+	"type": "object",
+	"properties": {
+		"format": {
+			"type": "string",
+			"enum": ["openag-standard-v1"]},
+		"name": {"type": "string"},
+		"uuid": {"type": "string"},
+		"peripherals": {"type": ["array", "null"]},
+		"controllers": {"type": ["array", "null"]}
+	},
+	"required": [
+		"format", 
+		"name", 
+		"uuid", 
+		"peripherals", 
+		"controllers"
+	]
+}

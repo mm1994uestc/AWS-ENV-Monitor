@@ -1,0 +1,3 @@
+cd $PROJECT_ROOT
+$PROJECT_ROOT/run.sh &
+bash $PROJECT_ROOT/scripts/network/persist_remote_access.sh $PROJECT_ROOT $REMOTE_DEVICE_UI_URL $PLATFORM &

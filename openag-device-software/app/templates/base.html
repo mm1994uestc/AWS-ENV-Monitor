@@ -1,0 +1,118 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+	<link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+	<link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}"
+    <script defer src="{% static 'fontawesome/js/fontawesome-all.min.js' %}"></script>
+
+    <script src="{% static 'bootstrap/js/jquery.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OpenAg Brain{% endblock %}</title>
+
+    {% csrf_token %}
+    
+    {% block stylesheet %}
+    <style type="text/css">
+        body {
+         background-color: #f1f1f1;
+        }
+       .dashboard, .recipes, .environments, .peripherals, .images, .config, .password, .logs, .iot, .resources, .connect, .upgrade, .login {
+        padding: 20px;
+       }
+       .card {
+        background-color: #fff; 
+        padding: 20px;
+        margin-bottom: 20px;
+       }
+    </style>
+    {% endblock %}
+  
+
+  </head>
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">OpenAg Brain</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+
+      {% if not user.is_authenticated %}
+            <li><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+      {% else %}
+
+            <li {% if 'dashboard' in request.path %} class="active nav-item"{% else %} class="nav-item" {% endif %}>
+              <a class="nav-link" href="{% url 'dashboard' %}">Dashboard<span class="sr-only">(current)</span></a>
+            </li>
+
+            <li {% if 'peripherals' in request.path %} class="active nav-item"{% else %} class="nav-item" {% endif %}>
+              <a class="nav-link" href="{% url 'peripherals' %}">Peripherals</a>
+            </li>
+
+            <li class="dropdown">
+              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret">Provision</span></a>
+              <ul class="dropdown-menu bg-dark">
+                <li><a class="nav-link" href="{% url 'device-config' %}">Config</a></li>
+                <li><a class="nav-link" href="{% url 'connect' %}">Connect</a></li>
+                <li><a class="nav-link" href="{% url 'connect_advanced' %}">Connect (advanced)</a></li>
+                <li><a class="nav-link" href="{% url 'upgrade' %}">Upgrade</a></li>
+              </ul>
+            </li>
+
+            <li class="dropdown">
+              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret">System</span></a>
+              <ul class="dropdown-menu bg-dark">
+                <li><a class="nav-link" href="{% url 'admin:index' %}" target="_blank">Admin</a></li>
+                <li><a class="nav-link" href="/api" target="_blank">API</a></li>
+                <li><a class="nav-link" href="{% url 'environments' %}">Environments</a></li>
+                <li><a class="nav-link" href="{% url 'images' %}">Images</a></li>
+                <li><a class="nav-link" href="{% url 'iot' %}">IoT</a></li>
+                <li><a class="nav-link" href="{% url 'logs' %}">Logs</a></li>
+                <li><a class="nav-link" href="{% url 'recipes' %}">Recipes</a></li>
+                <li><a class="nav-link" href="{% url 'resource' %}">Resources</a></li>
+              </ul>
+            </li>
+
+            <li class="dropdown">
+              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret">User</span></a>
+              <ul class="dropdown-menu bg-dark">
+                <li><a class="nav-link" href="{% url 'change_password' %}">Password</a></li>
+                <li><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+              </ul>
+            </li>
+
+            <li class="dropdown">
+              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret">Help</span></a>
+              <ul class="dropdown-menu bg-dark">
+                <li><a class="nav-link" href="https://github.com/OpenAgInitiative/openag-device-software/blob/master/README.md" target="_blank">Read Me</a></li>
+                <li><a class="nav-link" href="https://github.com/OpenAgInitiative/openag-device-software/blob/master/LICENSE" target="_blank">License</a></li>
+                <li><a class="nav-link" href="https://github.com/OpenAgInitiative/openag-device-software/blob/master/docs/contributing.md" target="_blank">Contributing</a></li>
+                <li><a class="nav-link" href="https://forum.openag.media.mit.edu/" target="_blank">Forum</a></li>
+                <li><a class="nav-link" href="https://wiki.openag.media.mit.edu" target="_blank">Wiki</a></li>
+              </ul>
+            </li>
+
+      {% endif %}
+           
+          </ul>
+        </div>
+      </nav>
+    </header>
+    <main>
+      {% block content %}
+      {% endblock %}
+    </main>
+    <footer>
+    </footer>
+
+    {% block javascript %}{% endblock %}
+  </body>
+</html>

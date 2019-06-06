@@ -1,0 +1,22 @@
+[
+	{
+		"name": "Shallow Water Culture",
+		"uuid": "30cbbded-07a7-4c49-a47b-e34fc99eefd0",
+		"info": {
+			"description": {
+				"brief": "Plant roots sit in a shallow dish or tray",
+				"verbose": "A hydroponic cultivation method where plant roots sit in a mix of water and nutrients. Root zone depth is usually ten inches or less."
+			}
+		}
+	},
+	{
+		"name": "Soil",
+		"uuid": "dc919f3d-f110-4371-965c-3e89041cecfe",
+		"info": {
+			"description": {
+				"brief": "Plant roots grow in soil.",
+				"verbose": "Plant roots grow in soil."
+			}
+		}
+	}
+]

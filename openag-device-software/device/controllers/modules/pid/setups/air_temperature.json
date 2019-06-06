@@ -1,0 +1,32 @@
+{
+	"name":  "Air Temperature PID Controller",
+	"version": "1",
+	"uuid": "905930f7-9aa5-4c5d-b7ee-1b4337dbc52c",
+	"module_name": "pid.manager",
+	"class_name": "PIDControllerManager",
+	"parameters": {
+		"variables": {
+			"sensor_name": {
+				"type": "string", 
+				"default": "air_temperature_celsius"
+			},
+			"positive_actuator_name": {
+				"type": "string",
+				"default": "air_heater_percent"
+			},
+			"negative_actuator_name": {
+				"type": "string",
+				"default": "air_chiller_percent"
+			}
+		}
+	},
+	"properties": {
+        "P": 1.2,
+        "I": 1.0,
+        "D": 0.001,
+        "windup": 0.001,
+        "sample_time_seconds": 0.0
+	},
+	"events": null,
+	"info": {}
+}
