@@ -6,7 +6,7 @@ import os
 
 print 'Raspiberry Camera initial...'
 camera = PiCamera()
-camera.resolution = (640,480)
+camera.resolution = (240,190)
 camera.framerate = 32
 camera.hflip = True
 camera.vflip = True

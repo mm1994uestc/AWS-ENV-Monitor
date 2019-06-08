@@ -20,9 +20,11 @@ int main(int argc,char* argv[])
     while(1) 
     {
         digitalWrite(pinNumber, 1); // output a high level 
-        delay(800);
+        delay(2000);
+	printf("The pin is up!\n");
         digitalWrite(pinNumber, 0); // output a low level 
-        delay(800);
+        delay(2000);
+	printf("The pin is down!\n");
     }
     return 0;
 }
