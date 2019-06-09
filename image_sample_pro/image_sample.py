@@ -139,7 +139,7 @@ camera = PiCamera()
 camera.resolution = (640,480)
 camera.framerate = 32
 camera.hflip = True
-camera.vflip = True
+camera.vflip = False
 
 pre_min = 0
 min_update = 0
@@ -156,7 +156,7 @@ def Motor_PowerOff(Motor):
 def system_init(axis):
     if axis == 'x':
         while GPIO.input(x_limit_trigger_pin) == 1:
-            motor_control('left',100)
+            motor_control('left',20)
             time.sleep(0.2)
         print 'axis x initial finished!'
         Motor_PowerOff('x')
@@ -182,17 +182,18 @@ while True:
         print 'image sampling...'
 
         for x in x_step:
+            motor_control('right',x)
+            time.sleep(1)
+            Motor_PowerOff('x')
             for y in y_step:
                 motor_control('down',y)
                 Motor_PowerOff('y')
                 time.sleep(1)
-                camera.capture(str(date.tm_hour)+'\''+str(date.tm_min)+'-X-'+str(x)+'Y-'+str(y)+'.jpg',use_video_port = False)
+                path = "/home/pi/nexgen_pro/image_sample_pro/image_data/"+str(date.tm_hour)+'\''+str(date.tm_min)+'-X-'+str(x)+'Y-'+str(y)+'.jpg'
+                camera.capture(path,use_video_port = False)
             motor_control('up',sum(y_step))
             time.sleep(0.5)
             Motor_PowerOff('y')
-            motor_control('right',x)
-            time.sleep(1)
-            Motor_PowerOff('x')
         motor_control('left',sum(x_step))
         system_init('x')
         # system_init('y')
