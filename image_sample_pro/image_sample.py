@@ -41,10 +41,10 @@ GPIO.setup(y_motor_pin_BN,GPIO.OUT)
 GPIO.setup(x_limit_trigger_pin,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 GPIO.setup(y_limit_trigger_pin,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 
-x_n = 2
+x_n = 3
 y_n = 0
 
-x_distance = [3,200] # Unit:mm
+x_distance = [53,100,100] # Unit:mm
 y_distance = [0]
 
 x_step = []
@@ -138,7 +138,7 @@ print 'Raspiberry Camera initial...'
 camera = PiCamera()
 camera.resolution = (640,480)
 camera.framerate = 32
-camera.hflip = True
+camera.hflip = False
 camera.vflip = False
 
 pre_min = 0
@@ -171,12 +171,15 @@ print 'Initial the system...'
 system_init('x')
 # system_init('y')
 
+x_axis_lable = 1
+y_axis_lable = 1
+
 while True:
     date = time.localtime(time.time())
     if pre_min != date.tm_min:
         min_update = 1
         pre_min = date.tm_min
-    if date.tm_hour % 1 == 0 and date.tm_min % 5 == 0 and min_update:
+    if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update:
         min_update = 0
         print 'Current time:',date.tm_year,':',date.tm_mon,':',date.tm_mday,':',date.tm_hour,':',date.tm_min,':',date.tm_sec
         print 'image sampling...'
@@ -189,11 +192,15 @@ while True:
                 motor_control('down',y)
                 Motor_PowerOff('y')
                 time.sleep(1)
-                path = "/home/pi/nexgen_pro/image_sample_pro/image_data/"+str(date.tm_hour)+'\''+str(date.tm_min)+'-X-'+str(x)+'Y-'+str(y)+'.jpg'
+                path = "/home/pi/nexgen_pro/image_sample_pro/image_data/"+str(date.tm_hour)+'\''+str(date.tm_min)+'-X-'+str(x_axis_lable)+'Y-'+str(y_axis_lable)+'.jpg'
+                y_axis_lable += 1
                 camera.capture(path,use_video_port = False)
+            x_axis_lable += 1
             motor_control('up',sum(y_step))
             time.sleep(0.5)
             Motor_PowerOff('y')
         motor_control('left',sum(x_step))
         system_init('x')
+        x_axis_lable = 1
+        y_axis_lable = 1
         # system_init('y')
