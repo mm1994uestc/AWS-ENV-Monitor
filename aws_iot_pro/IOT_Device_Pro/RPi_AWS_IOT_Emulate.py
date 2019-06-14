@@ -86,17 +86,17 @@ while True:
     json_data[0]['state']['reported']['CPU_Temp'] = str(CPU_Temp_val)
 
     # mesg = json.dumps(json_data)
-  
+    print 'Send the mseg to AWS!'
     if CPU_Temp_val > 58.0:
         json_data[0]['email'] = 'Fans ON!'
         mesg = json.dumps(json_data[0])
         myDeviceShadow.shadowUpdate(mesg ,myShadowUpdateCallback, 5)
-        GPIO.output(fans_pin,False)
+        # GPIO.output(fans_pin,True)
     elif CPU_Temp_val < 53.0:
         json_data[0]['email'] = 'Fans OFF!'
         mesg = json.dumps(json_data[0])
         myDeviceShadow.shadowUpdate(mesg, myShadowUpdateCallback, 5)
-        GPIO.output(fans_pin,True)
+        # GPIO.output(fans_pin,False)
 
     # Wait for this test value to be added.
     time.sleep(20)

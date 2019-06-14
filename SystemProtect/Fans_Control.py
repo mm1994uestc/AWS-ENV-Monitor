@@ -16,9 +16,10 @@ def get_CPU_Temprature():
 
 Temp = get_CPU_Temprature()
 CPU_Temp_val = float(Temp)
-print CPU_Temp_val
 
 if CPU_Temp_val > 58.0:
-    GPIO.output(Fans_pin,False)
-elif CPU_Temp_val < 40.0:
+    print 'Fans ON'
     GPIO.output(Fans_pin,True)
+elif CPU_Temp_val < 40.0:
+    print 'Fans OFF'
+    GPIO.output(Fans_pin,False)
