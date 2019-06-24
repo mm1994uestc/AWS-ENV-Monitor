@@ -10,7 +10,7 @@ to_send = [0x01,0x02,0x03]
 
 spi_dev.mode = 0b01
 spi_dev.no_cs = True
-spi_dev.max_speed_hz = 5000
+spi_dev.max_speed_hz = 1000
 spi_dev.xfer(to_send)
 
 Data_Recv = spi_dev.readbytes(3)

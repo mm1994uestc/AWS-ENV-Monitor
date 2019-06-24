@@ -61,15 +61,23 @@ def get_CPU_Temprature():
     res = os.popen('vcgencmd measure_temp').readline()
     return res.replace("temp=","").replace("'C\n","")
 
-json_data = [{'default':'Trigger Test','state':{'reported':{'Temprature':None,'Humidity':None,'CPU_Temp':None}},'email':None}]
+json_data = [{'default':'ENV-Status','state':{'reported':{'nexgen-time':None,'ENV-Temp':None,'ENV-RH':None,'ENV-Fans':'OFF','CPU-Temp':None,'CPU-Fans':'OFF'}},'notify':False,'email':None}]
 # '{"default":"Trigger Test","state":{"reported":{"Temprature":"High"}},"email":"Temprature is High!"}'
 # Keep generating random test data until this script 
 # stops running.
 # To stop running this script, press Ctrl+C.
+week_env_temp = []
+week_cpu_temp = []
+week_env_rh = []
+
 while True:
     # Generate random True or False test data to represent
     # okay or low moisture levels, respectively.
-
+    date = time.localtime(time.time())
+    date_str = str(date.tm_year) + ':' + str(date.tm_mon) + ':' + str(date.tm_mday) + ':' + str(date.tm_hour) + ':' + \
+            str(date.tm_min) + ':' + str(date.tm_sec)
+    print 'Current time:',date_str
+    
     CPU_Temp = get_CPU_Temprature()
     CPU_Temp_val = float(CPU_Temp)
 
@@ -81,25 +89,27 @@ while True:
 
     print ENV_Temp_val,ENV_RH_val,CPU_Temp_val
 
-    json_data[0]['state']['reported']['Temprature'] = str(ENV_Temp_val)
-    json_data[0]['state']['reported']['Humidity'] = str(ENV_RH_val)+"%"
-    json_data[0]['state']['reported']['CPU_Temp'] = str(CPU_Temp_val)
-
+    json_data[0]['state']['reported']['nexgen-time'] = date_str
+    json_data[0]['state']['reported']['ENV-Temp'] = str(ENV_Temp_val)
+    json_data[0]['state']['reported']['ENV-RH'] = str(ENV_RH_val)+"%"
+    json_data[0]['state']['reported']['CPU-Temp'] = str(CPU_Temp_val)
+    
     # mesg = json.dumps(json_data)
     print 'Send the mseg to AWS!'
-    if CPU_Temp_val > 58.0:
-        json_data[0]['email'] = 'Fans ON!'
-        mesg = json.dumps(json_data[0])
-        myDeviceShadow.shadowUpdate(mesg ,myShadowUpdateCallback, 5)
-        # GPIO.output(fans_pin,True)
-    elif CPU_Temp_val < 53.0:
-        json_data[0]['email'] = 'Fans OFF!'
-        mesg = json.dumps(json_data[0])
-        myDeviceShadow.shadowUpdate(mesg, myShadowUpdateCallback, 5)
-        # GPIO.output(fans_pin,False)
+    if CPU_Temp_val > 60 or ENV_RH_val > 90 or ENV_Temp_val > 30:
+        print 'notify on.'
+        json_data[0]['notify'] = True
+        json_data[0]['email'] = 'Fans ON!'+'\nTemp:'+str(ENV_Temp_val)+'\nRH:'+str(ENV_RH_val)+'\nCPU_Temp:'+str(CPU_Temp_val)
+    else:
+        print 'notify off.'
+        json_data[0]['notify'] = False
+        json_data[0]['email'] = None
+
+    mesg = json.dumps(json_data[0])
+    myDeviceShadow.shadowUpdate(mesg ,myShadowUpdateCallback, 5)
 
     # Wait for this test value to be added.
-    time.sleep(20)
+    time.sleep(60)
 
 
 
