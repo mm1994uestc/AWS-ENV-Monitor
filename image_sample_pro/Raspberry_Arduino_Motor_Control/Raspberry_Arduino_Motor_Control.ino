@@ -10,10 +10,13 @@ const int Pin_AN = 4;
 const int Pin_BP = 12;
 const int Pin_BN = 13;
 const int Y_Trigger = 10;
+const int Y_Speed_us = 1800; //1800 us Unit:us
 
 const int dirPin = 8;
 const int stepperPin = 7;
+const int enPin = 9;
 const int X_Trigger = 11;
+const int X_Speed = 800;
 
 unsigned int x_abs_position = 0;
 unsigned int y_abs_position = 0;
@@ -21,51 +24,53 @@ int current_steps = 0;
 
 void x_step(boolean dir,int steps)
 {
+  digitalWrite(enPin,0);
   digitalWrite(dirPin,dir);
-  delay(50);
+  delay(10);
   for(int i=0;i<steps;i++){
     digitalWrite(stepperPin, HIGH);
-    delayMicroseconds(800);
+    delayMicroseconds(X_Speed);
     digitalWrite(stepperPin, LOW);
-    delayMicroseconds(800); 
+    delayMicroseconds(X_Speed); 
   }  
+  digitalWrite(enPin,1);
   if(dir == 0) x_abs_position -= steps;
   if(dir == 1) x_abs_position += steps;
 }
 void y_step(boolean dir,int steps)
 {
-  if(dir=='0')
+  if(dir==0)
   {
     for(int i=0;i<steps;i++){
       digitalWrite(Pin_AP,HIGH); digitalWrite(Pin_AN,LOW);
       digitalWrite(Pin_BP,LOW);  digitalWrite(Pin_BN,HIGH);
-      delay(2); // 1.8ms
+      delayMicroseconds(Y_Speed_us);
       digitalWrite(Pin_AP,HIGH); digitalWrite(Pin_AN,LOW);
       digitalWrite(Pin_BP,HIGH); digitalWrite(Pin_BN,LOW);
-      delay(2);   
+      delayMicroseconds(Y_Speed_us);
       digitalWrite(Pin_AP,LOW);  digitalWrite(Pin_AN,HIGH);
       digitalWrite(Pin_BP,HIGH); digitalWrite(Pin_BN,LOW);
-      delay(2); // 1.8ms   
+      delayMicroseconds(Y_Speed_us);
       digitalWrite(Pin_AP,LOW); digitalWrite(Pin_AN,HIGH);
       digitalWrite(Pin_BP,LOW);  digitalWrite(Pin_BN,HIGH);
-      delay(2); // 1.8ms
+      delayMicroseconds(Y_Speed_us);
     }
   }
-  if(dir=='1')
+  if(dir==1)
   {
     for(int i=0;i<steps;i++){
       digitalWrite(Pin_AP,LOW); digitalWrite(Pin_AN,HIGH);
       digitalWrite(Pin_BP,LOW);  digitalWrite(Pin_BN,HIGH);
-      delay(2); // 1.8ms
+      delayMicroseconds(Y_Speed_us);
       digitalWrite(Pin_AP,LOW);  digitalWrite(Pin_AN,HIGH);
       digitalWrite(Pin_BP,HIGH); digitalWrite(Pin_BN,LOW);
-      delay(2); // 1.8ms 
+      delayMicroseconds(Y_Speed_us);
       digitalWrite(Pin_AP,HIGH); digitalWrite(Pin_AN,LOW);
       digitalWrite(Pin_BP,HIGH); digitalWrite(Pin_BN,LOW);
-      delay(2);   
+      delayMicroseconds(Y_Speed_us);
       digitalWrite(Pin_AP,HIGH); digitalWrite(Pin_AN,LOW);
       digitalWrite(Pin_BP,LOW);  digitalWrite(Pin_BN,HIGH);
-      delay(2); // 1.8ms
+      delayMicroseconds(Y_Speed_us);
     }
   }
   if(dir == 0) y_abs_position -= steps;
@@ -95,6 +100,7 @@ void setup() {
   
   pinMode(dirPin,OUTPUT);
   pinMode(stepperPin,OUTPUT);
+  pinMode(enPin,OUTPUT);
   pinMode(X_Trigger,INPUT);
 
   pinMode(Pin_AP,OUTPUT);
