@@ -1,6 +1,7 @@
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import RPi.GPIO as GPIO
+import serial
 import time
 import os 
 
@@ -197,6 +198,8 @@ if Start_Date.tm_mday >= 10:
 else:
     Start_day = '0' + str(Start_Date.tm_mday)
 
+ser = serial.Serial("/dev/ttyUSB0", 9600)
+CMD = ['A','B','C','D','E','F','N']
 while True:
     date = time.localtime(time.time())
     if pre_min != date.tm_min:
@@ -222,14 +225,20 @@ while True:
         else:
             Current_min = '0' + str(date.tm_min)
         print 'image sampling...'
-
+        
         for x in x_step:
-            motor_control('right',x)
+            CMD_Send = CMD[0] + chr(x_distance[x]) + '\0'
+            print  CMD_Send
+            ser.write(CMD_Send) # X-axis Going ON Positive
+            CMD_Send = CMD[7]
             time.sleep(1)
-            Motor_PowerOff('x')
+            # Motor_PowerOff('x')
             for y in y_step:
-                motor_control('down',y)
-                Motor_PowerOff('y')
+                CMD_Send = CMD[2] + chr(y_distance[y]) + '\0'
+                print  CMD_Send
+                ser.write(CMD_Send) # X-axis Going ON Positive
+                CMD_Send = CMD[7]
+                # Motor_PowerOff('y')
                 time.sleep(1)
                 print x_axis_lable,y_axis_lable
                 path = "/home/pi/nexgen_pro/image_sample_pro/image_data/"+Mashine_Name+'_'+str(Start_Date.tm_year)+Start_month+Start_day+'_'+str(date.tm_year)+Current_month+Current_day+'_'+Current_hour+Current_min+'_'+Position[y_axis_lable][x_axis_lable]+'_V'+'_NU'+'.jpg'
@@ -237,11 +246,14 @@ while True:
                 camera.capture(path,use_video_port = False)
             x_axis_lable += 1
             y_axis_lable = 0
-            motor_control('up',sum(y_step))
+            CMD_Send = CMD[4] + '\0'
+            ser.write(CMD_Send)
+            # motor_control('up',sum(y_step))
             time.sleep(0.5)
-            Motor_PowerOff('y')
-        motor_control('left',sum(x_step)-100)
+            # Motor_PowerOff('y')
+        # motor_control('left',sum(x_step)-100)
+        CMD_Send = CMD[5] + '\0'
+        ser.write(CMD_Send)
         system_init('x')
         x_axis_lable = 0
         y_axis_lable = 0
-        # system_init('y')
