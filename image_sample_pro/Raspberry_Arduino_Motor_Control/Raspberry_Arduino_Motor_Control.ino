@@ -95,6 +95,11 @@ void y_initial(void)
   }*/
 }
 
+void Stop_Motor(void)
+{
+  digitalWrite(Pin_AP,LOW); digitalWrite(Pin_AN,LOW); digitalWrite(Pin_BP,LOW); digitalWrite(Pin_BN,LOW); digitalWrite(enPin,1);
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -119,17 +124,14 @@ void loop() {
       Update_Flag = 1;
   }
   
-  if(Update_Flag == 1){
-    switch(Buffers[0]){
-      case 'A': current_steps = int(Buffers[1]/x_mm_pp); x_step(1,current_steps);  Serial.println("OK"); break;
-      case 'B': current_steps = int(Buffers[1]/x_mm_pp); x_step(0,current_steps);  Serial.println("OK"); break;
-      case 'C': current_steps = int(Buffers[1]/y_mm_pp); y_step(1,current_steps);  Serial.println("OK"); break;
-      case 'D': current_steps = int(Buffers[1]/y_mm_pp); y_step(0,current_steps);  Serial.println("OK"); break;
-      case 'E': x_initial();  Serial.println("OK"); break;
-      case 'F': y_initial();  Serial.println("OK"); break;
-	  case 'S': Stop_Motor(); Serial.println("OK"); break; 
-      default : break;
-    }
+    if(Update_Flag == 1){
+    if(Buffers[0] == 'A') {current_steps = int(Buffers[1]/x_mm_pp); x_step(1,current_steps);  Serial.println("OK");}
+    if(Buffers[0] == 'B') {current_steps = int(Buffers[1]/x_mm_pp); x_step(0,current_steps);  Serial.println("OK");}
+    if(Buffers[0] == 'C') {current_steps = int(Buffers[1]/y_mm_pp); y_step(1,current_steps);  Serial.println("OK");}
+    if(Buffers[0] == 'D') {current_steps = int(Buffers[1]/y_mm_pp); y_step(0,current_steps);  Serial.println("OK");}
+    if(Buffers[0] == 'E') {x_initial();  Serial.println("OK");}
+    if(Buffers[0] == 'F') {y_initial();  Serial.println("OK");}
+    if(Buffers[0] == 'S') {Stop_Motor(); Serial.println("OK");}
     Update_Flag = 0;
   }
 }
