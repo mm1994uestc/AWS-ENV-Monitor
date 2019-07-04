@@ -79,18 +79,20 @@ void y_step(boolean dir,int steps)
 
 void x_initial(void)
 {
-  x_step(0,x_abs_position-15);
+  x_step(0,x_abs_position);
+  /*
   while(digitalRead(X_Trigger)){
     x_step(0,15);  
-  }
+  }*/
 }
 
 void y_initial(void)
 {
-  y_step(0,y_abs_position-15);
+  y_step(0,y_abs_position);
+  /*
   while(digitalRead(Y_Trigger)){
     y_step(0,15);  
-  }
+  }*/
 }
 
 void setup() {
@@ -123,8 +125,9 @@ void loop() {
       case 'B': current_steps = int(Buffers[1]/x_mm_pp); x_step(0,current_steps);  Serial.println("OK"); break;
       case 'C': current_steps = int(Buffers[1]/y_mm_pp); y_step(1,current_steps);  Serial.println("OK"); break;
       case 'D': current_steps = int(Buffers[1]/y_mm_pp); y_step(0,current_steps);  Serial.println("OK"); break;
-      case 'E': x_initial(); Serial.println("OK"); break;
-      case 'F': y_initial(); Serial.println("OK"); break;
+      case 'E': x_initial();  Serial.println("OK"); break;
+      case 'F': y_initial();  Serial.println("OK"); break;
+	  case 'S': Stop_Motor(); Serial.println("OK"); break; 
       default : break;
     }
     Update_Flag = 0;
