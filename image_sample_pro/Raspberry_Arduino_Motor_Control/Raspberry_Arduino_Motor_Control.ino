@@ -33,9 +33,9 @@ void x_step(boolean dir,int steps)
     digitalWrite(stepperPin, LOW);
     delayMicroseconds(X_Speed); 
   }  
-  digitalWrite(enPin,1);
-  if(dir == 0) x_abs_position -= steps;
-  if(dir == 1) x_abs_position += steps;
+  digitalWrite(enPin,1); // Close the 42Motor
+  if(dir == 0) x_abs_position += steps;
+  if(dir == 1) x_abs_position -= steps;
 }
 void y_step(boolean dir,int steps)
 {
@@ -73,13 +73,15 @@ void y_step(boolean dir,int steps)
       delayMicroseconds(Y_Speed_us);
     }
   }
+  digitalWrite(Pin_AP,0); digitalWrite(Pin_AN,0); // Close the micro motor
+  digitalWrite(Pin_BP,0); digitalWrite(Pin_BN,0);
   if(dir == 0) y_abs_position -= steps;
   if(dir == 1) y_abs_position += steps;
 }
 
 void x_initial(void)
 {
-  x_step(0,x_abs_position);
+  x_step(1,x_abs_position);
   /*
   while(digitalRead(X_Trigger)){
     x_step(0,15);  
@@ -124,14 +126,14 @@ void loop() {
       Update_Flag = 1;
   }
   
-    if(Update_Flag == 1){
-    if(Buffers[0] == 'A') {current_steps = int(Buffers[1]/x_mm_pp); x_step(1,current_steps);  Serial.println("OK");}
-    if(Buffers[0] == 'B') {current_steps = int(Buffers[1]/x_mm_pp); x_step(0,current_steps);  Serial.println("OK");}
-    if(Buffers[0] == 'C') {current_steps = int(Buffers[1]/y_mm_pp); y_step(1,current_steps);  Serial.println("OK");}
-    if(Buffers[0] == 'D') {current_steps = int(Buffers[1]/y_mm_pp); y_step(0,current_steps);  Serial.println("OK");}
-    if(Buffers[0] == 'E') {x_initial();  Serial.println("OK");}
-    if(Buffers[0] == 'F') {y_initial();  Serial.println("OK");}
-    if(Buffers[0] == 'S') {Stop_Motor(); Serial.println("OK");}
+  if(Update_Flag == 1){
+    if(Buffers[0] == 'A') {current_steps = int(float(Buffers[1])/x_mm_pp); x_step(1,current_steps);  Serial.println("OK-A");}
+    if(Buffers[0] == 'B') {current_steps = int(float(Buffers[1])/x_mm_pp); x_step(0,current_steps);  Serial.println("OK-B");}
+    if(Buffers[0] == 'C') {current_steps = int(float(Buffers[1])/y_mm_pp); y_step(1,current_steps);  Serial.println("OK-C");}
+    if(Buffers[0] == 'D') {current_steps = int(float(Buffers[1])/y_mm_pp); y_step(0,current_steps);  Serial.println("OK-D");}
+    if(Buffers[0] == 'E') {x_initial();  Serial.println("OK-E");}
+    if(Buffers[0] == 'F') {y_initial();  Serial.println("OK-F");}
+    if(Buffers[0] == 'S') {Stop_Motor(); Serial.println("OK-S");}
     Update_Flag = 0;
   }
 }
