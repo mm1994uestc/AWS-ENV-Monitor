@@ -104,14 +104,14 @@ def Test_Motor(serial):
     time.sleep(1.5)
     serial.write(CMD['x-init'])
     # ASK_Slave(serial,CMD['x-init'])
-    time.sleep(1.5)
+    time.sleep(2)
     CMD_Send = CMD['y-down'] + chr(0)
     serial.write(CMD_Send)
     # ASK_Slave(serial,CMD_Send)
     time.sleep(1.5)
     serial.write(CMD['y-init'])
     # ASK_Slave(serial,CMD['y-init'])
-    time.sleep(1.5)
+    time.sleep(2)
     print 'Testing Motor Finished.'
 
 def Motor_Control(serial,CMD_IN,distance):
@@ -172,16 +172,17 @@ while True:
         for x in range(x_n):
             Motor_Control(ser,CMD['x-left'],x_distance[x]) # X-axis Going ON Positive
             for y in range(y_n):
-                Motor_Control(ser,CMD['y-down'],y_distance[y])
+                if x%2 == 0 and y != 0:
+                    Motor_Control(ser,CMD['y-down'],y_distance[y])
+                    y_axis_lable += 1
+                if x%2 != 0 and y != 0:
+                    Motor_Control(ser,CMD['y-up'],y_distance[-y])
+                    y_axis_lable -= 1
                 print x_axis_lable,y_axis_lable
                 path = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_data/"+Position[y_axis_lable][x_axis_lable]+'/'+Mashine_Name+'_'+str(Start_Date.tm_year)+Start_month+Start_day+'_'+str(date.tm_year)+Current_month+Current_day+'_'+Current_hour+Current_min+'_'+Position[y_axis_lable][x_axis_lable]+'_V'+'_NU'+'.jpg'
-                y_axis_lable += 1
                 camera.capture(path,use_video_port = False)
-                time.sleep(3)
                 print path
             x_axis_lable += 1
-            y_axis_lable = 0
-            Motor_Control(ser,CMD['y-init'],0)
         Motor_Control(ser,CMD['x-init'],0)
         time.sleep(3)
         x_axis_lable = 0
