@@ -35,3 +35,25 @@ Change the pwd into the HEX-file'folder(HEXOfArduino) firstly.
 * Step4:Setting the minicom to show the data we send.
    * Firstly press the `Ctrl+A` and then press the `e`.
    * Now we are in the send data show mode.
+# How to download the HEX update file from aws's3 server?
+1. Create a new S3 bucket for your app and upload the hex file you want to update.
+2. Install the boto3-python library for communicate with aws. `pip install boto3`
+3. Install the aws-cli(AWS-Command line) so that you can connect to aws with boto3.
+* Step1:Install awscli. `pip install awscli --upgrade --user`
+* Step2:In order to add the aws cmd to the path we need to change the path'file. `sudo vim ~/.bashrc`
+   * Insert the line at the end of path'file. `export PATH=~/.local/bin:$PATH`
+   * Make the path'file work. `source ~/.bashrc`
+* Step3:Test whether the awscli is installed successfully.
+   * `aws --version`
+   * It should show like this: `aws-cli/1.16.116 Python/3.6.8 Linux/4.14.77-81.59-amzn2.x86_64 botocore/1.12.106`
+* Step4:Config the aws'configration.
+   * Execute the cmd:`aws configure`
+   * And then you need to insert your aws conut infomations:
+   ```
+   $ aws configure
+   AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
+   AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+   Default region name [None]: us-west-2
+   Default output format [None]: json
+   ```
+4. Finished the aws-cli configration and then you can download hex file with boto3-python script.
