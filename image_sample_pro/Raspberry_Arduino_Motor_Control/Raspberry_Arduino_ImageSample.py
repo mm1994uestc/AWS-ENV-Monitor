@@ -100,17 +100,17 @@ def Test_Motor(serial):
     print 'Testing Motor...'
     CMD_Send = CMD['x-left'] + chr(0)
     serial.write(CMD_Send)
-    ASK_Slave(serial,CMD_Send)
+    # ASK_Slave(serial,CMD_Send)
     time.sleep(1.5)
     serial.write(CMD['x-init'])
-    ASK_Slave(serial,CMD['x-init'])
+    # ASK_Slave(serial,CMD['x-init'])
     time.sleep(1.5)
     CMD_Send = CMD['y-down'] + chr(0)
     serial.write(CMD_Send)
-    ASK_Slave(serial,CMD_Send)
+    # ASK_Slave(serial,CMD_Send)
     time.sleep(1.5)
     serial.write(CMD['y-init'])
-    ASK_Slave(serial,CMD['y-init'])
+    # ASK_Slave(serial,CMD['y-init'])
     time.sleep(1.5)
     print 'Testing Motor Finished.'
 
