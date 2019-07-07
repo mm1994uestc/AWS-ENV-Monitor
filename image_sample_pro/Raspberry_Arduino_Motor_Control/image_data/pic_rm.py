@@ -2,21 +2,15 @@ import os
 import sys
 import glob
 import time
-import boto3
 
 Upload_tm = time.localtime(time.time())
 Current_date = str(Upload_tm.tm_year) + '-' + str(Upload_tm.tm_mon) + '-' + str(Upload_tm.tm_mday) + '-' + str(Upload_tm.tm_hour) + '-' + str(Upload_tm.tm_min) + '-' + str(Upload_tm.tm_sec)
-print Current_date
-print "Start uploading images:"
 
-image_obj = []
+print Current_date
+print "Start deleting images:"
+
 folder_obj = ['A1','A2','A3','A4','A5','A6','A7','A8','B1','B2','B3','B4','B5','B6','B7','B8',\
         'C1','C2','C3','C4','C5','C6','C7','C8','D1','D2','D3','D4','D5','D6','D7','D8']
-
-s3 = boto3.resource('s3')
-
-Journal = open('sample_Journal.log','a')
-Journal.write("Upload-Time:"+Current_date+'\n')
 
 for folder_name in folder_obj:
     Find_image_path = './'+folder_name+'/*.jpg'
@@ -24,12 +18,7 @@ for folder_name in folder_obj:
     image_n = len(image_dataset)
     for i in range(image_n):
         image_name = image_dataset[i][5:]
-        Journal.write(image_name+'\n')
-        print "Uploading " + image_name + "..."
-        with open(image_dataset[i],'rb') as data:
-            s3.meta.client.upload_fileobj(data,'image-data',image_name)
         print "Deleting " + image_name + "..."
         os.system('rm -f ' + image_dataset[i])
 
-Journal.close()
-print "Finish Uploading Images."
+print "Finish Deleting Images."
