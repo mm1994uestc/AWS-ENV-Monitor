@@ -1,6 +1,6 @@
 #define CMD_DATA_Len 2
 #define x_mm_pp 0.0711
-#define y_mm_pp 0.0625
+#define y_mm_pp 0.125// 1:100=0.0625 1:50=0.125
 
 int Update_Flag = 0;
 char Buffers[CMD_DATA_Len] = {0};
