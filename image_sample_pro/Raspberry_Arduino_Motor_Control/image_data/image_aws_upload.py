@@ -12,18 +12,19 @@ print "Start uploading images:"
 image_obj = []
 folder_obj = ['A1','A2','A3','A4','A5','A6','A7','A8','B1','B2','B3','B4','B5','B6','B7','B8',\
         'C1','C2','C3','C4','C5','C6','C7','C8','D1','D2','D3','D4','D5','D6','D7','D8']
-
+abs_path = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_data/"
+name_start = len(abs_path) + 3
 s3 = boto3.resource('s3')
 
-Journal = open('sample_Journal.log','a')
+Journal = open(abs_path + 'sample_Journal.log','a')
 Journal.write("Upload-Time:"+Current_date+'\n')
 
 for folder_name in folder_obj:
-    Find_image_path = './'+folder_name+'/*.jpg'
+    Find_image_path = abs_path + folder_name + '/*.jpg'
     image_dataset = glob.glob(Find_image_path)
     image_n = len(image_dataset)
     for i in range(image_n):
-        image_name = image_dataset[i][5:]
+        image_name = image_dataset[i][name_start:]
         Journal.write(image_name+'\n')
         print "Uploading " + image_name + "..."
         with open(image_dataset[i],'rb') as data:
