@@ -11,6 +11,10 @@ camera.framerate = 32
 camera.hflip = True
 camera.vflip = True
 
+
 date = time.localtime(time.time())
 print 'Current time:',date.tm_year,':',date.tm_mon,':',date.tm_mday,':',date.tm_hour,':',date.tm_min,':',date.tm_sec
-camera.capture(str(date.tm_hour)+'\''+str(date.tm_min)+'.jpg',use_video_port = False)
+while True:
+    camera.capture(str(date.tm_hour)+'\''+str(date.tm_min)+'.jpg',use_video_port = False)
+    print 'Camera Capturing...'
+    time.sleep(5)
