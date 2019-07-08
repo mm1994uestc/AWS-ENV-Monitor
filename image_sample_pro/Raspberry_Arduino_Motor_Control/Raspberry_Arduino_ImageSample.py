@@ -9,12 +9,18 @@ Mashine_Name = 'P1'
 print 'Mashine_Name:',Mashine_Name
 print 'Raspberry GPIO initial...'
 
+Camera_IR_Pin = 17
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(Camera_IR_Pin,GPIO.OUT)
+
 x_n = 4
 y_n = 8
 
 x_distance = [0,58,100,100] # Unit:mm
-y_distance = [0,75,115,115,115,115,115,60]
+y_distance = [0,60,115,115,115,115,115,40]
 
+'''
 print 'Raspiberry Camera initial...'
 
 camera = PiCamera()
@@ -27,6 +33,7 @@ camera.iso=20
 camera.saturation=0
 camera.brightness=50
 camera.sharpness=0
+'''
 
 pre_min = 0
 min_update = 0
@@ -66,7 +73,6 @@ def ASK_Slave(serial,cmd_data):
     global recv_data,recv_n
     timeout_count = 0
     print 'recv_n',recv_n
-    # recv_n = serial.inWaiting()
     print 'recv_data_B',recv_data
     while True:
         print "Motor is moving: ",timeout_count," times"
@@ -74,7 +80,6 @@ def ASK_Slave(serial,cmd_data):
         recv_n = serial.inWaiting()
         print 'recv_n',recv_n
         if recv_n >= 2:
-            # serial.flushInput()
             recv_data = serial.read(recv_n)
             serial.flushInput()
             if 'OK' in recv_data and cmd_data[0] in recv_data:
@@ -100,17 +105,13 @@ def Test_Motor(serial):
     print 'Testing Motor...'
     CMD_Send = CMD['x-left'] + chr(0)
     serial.write(CMD_Send)
-    # ASK_Slave(serial,CMD_Send)
     time.sleep(1.5)
     serial.write(CMD['x-init'])
-    # ASK_Slave(serial,CMD['x-init'])
     time.sleep(2)
     CMD_Send = CMD['y-down'] + chr(0)
     serial.write(CMD_Send)
-    # ASK_Slave(serial,CMD_Send)
     time.sleep(1.5)
     serial.write(CMD['y-init'])
-    # ASK_Slave(serial,CMD['y-init'])
     time.sleep(2)
     print 'Testing Motor Finished.'
 
@@ -125,31 +126,32 @@ def Motor_Control(serial,CMD_IN,distance):
     else:
         serial.write(CMD_Send)
         ASK_Slave(serial,CMD_Send)
-        # serial.write(CMD['stop'])
         time.sleep(1)
-    # CMD_Send = CMD['Hold']
-    # serial.write(CMD_Send)
     time.sleep(1)
 
-'''
-Motor_Control(ser,CMD['x-init'],0)
-Motor_Control(ser,CMD['y-init'],0)
-Motor_Control(ser,CMD['x-right'],50)
-Motor_Control(ser,CMD['x-right'],50)
-Motor_Control(ser,CMD['y-down'],50)
-Motor_Control(ser,CMD['y-down'],50)
-Motor_Control(ser,CMD['x-init'],0)
-Motor_Control(ser,CMD['y-init'],0)
-'''
-
+abs_path = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_sample_Journal.log" # ADD-line
+Journal = open(abs_path,'a')
+Journal.write("################################## System Start:" + str(Start_Date.tm_year) + ':' + str(Start_Date.tm_mon) + ':' + str(Start_Date.tm_mday)+':' + str(Start_Date.tm_hour) + ':' + str(Start_Date.tm_min) + ':' + str(Start_Date.tm_sec) + " ###########################################\n")
+Journal.close()
+print 'System Start...'
 while True:
     date = time.localtime(time.time())
     if pre_min != date.tm_min:
         min_update = 1
         pre_min = date.tm_min
-    if date.tm_hour % 1 == 0 and date.tm_min % 1 == 0 and min_update:
+    if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update:
+        if date.tm_hour > 19 or date.tm_hour < 8: # Set the Camera's IR Capture func.
+            GPIO.output(Camera_IR_Pin,False)
+            print 'IR mode is ON!'
+        else:
+            GPIO.output(Camera_IR_Pin,True)
+            print 'IR mode is OFF!'
+        Time_Start = time.time()
+        Time_NOW = str(date.tm_year)+'-'+str(date.tm_mon)+'-'+str(date.tm_mday)+'-'+str(date.tm_hour)+'-'+str(date.tm_min)+'-'+str(date.tm_sec) # ADD-line
+        Journal = open(abs_path,'a') # ADD-line
+        Journal.write("Start sampling images:"+Time_NOW+'\n') # ADD-line
         min_update = 0
-        print 'Current time:',date.tm_year,':',date.tm_mon,':',date.tm_mday,':',date.tm_hour,':',date.tm_min,':',date.tm_sec
+        print 'Current time:',Time_NOW
         if date.tm_mon >= 10:
             Current_month = str(date.tm_mon)
         else:
@@ -180,10 +182,40 @@ while True:
                     y_axis_lable -= 1
                 print x_axis_lable,y_axis_lable
                 path = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_data/"+Position[y_axis_lable][x_axis_lable]+'/'+Mashine_Name+'_'+str(Start_Date.tm_year)+Start_month+Start_day+'_'+str(date.tm_year)+Current_month+Current_day+'_'+Current_hour+Current_min+'_'+Position[y_axis_lable][x_axis_lable]+'_V'+'_NU'+'.jpg'
-                camera.capture(path,use_video_port = False)
+                print 'Camera initilize...'
+                Camera_Status = 'BUSY'
+                while Camera_Status == 'BUSY':
+                    print "Try RPi-Camera..."
+                    try:
+                        camera = PiCamera()
+                        camera.resolution = (640,480)
+                        camera.framerate = 32
+                        camera.hflip = True
+                        camera.vflip = True
+                        camera.shutter_speed = 6000000
+                        camera.iso = 20
+                        camera.saturation = 0
+                        camera.brightness = 50
+                        camera.sharpness = 0
+                        time.sleep(1)
+                        camera.capture(path,use_video_port = False)
+                        camera.close()
+                        print 'Sample Successfully.'
+                        Camera_Status = 'FREE'
+                        pass
+                    except Exception,e:
+                        print 'Camera Wrong!'
+                        Camera_Status = 'BUSY'
+                        Journal.write("Camera Wrong? "+str(Exception)+':'+str(e)+'\n')
+                        time.sleep(5)
+                        pass
+                Journal.write(path[83:]+'\n') # ADD-line
                 print path
             x_axis_lable += 1
         Motor_Control(ser,CMD['x-init'],0)
-        time.sleep(3)
         x_axis_lable = 0
         y_axis_lable = 0
+        Journal.write("Sample Finished.\n")
+        Journal.close() # ADD-line
+        Time_End = time.time()
+        print '################ Time cost: ',(Time_End-Time_Start)/60,' minutes. ####################'
