@@ -25,15 +25,16 @@ folder_obj = ['A1','A2','A3','A4','A5','A6','A7','A8','B1','B2','B3','B4','B5','
         'C1','C2','C3','C4','C5','C6','C7','C8','D1','D2','D3','D4','D5','D6','D7','D8']
 
 if mswindows:
-    print 'Platform:Windows.'
-    print 'Start downloading images:',Current_date
+    print('Platform:Windows.')
+    print('Start downloading images:',Current_date)
     Journal = open('Download-Journal.log','a')
     Journal.write("Download-Time:"+Current_date+'\n')
     for folder in folder_obj:
         aws_cli = 'aws s3 cp s3://image-data/ ./' + folder + '/ --recursive --exclude \"*\" --include \"*_' + folder + '_V_NU.jpg\"'
-        print 'Downloading the ' + folder + '\'s image...'
+        print('Downloading the ' + folder + '\'s image...')
         os.system(aws_cli)
     Journal.close()
+    print("Finish Downloading Images.")
         
 if linux:
     print 'Platform:Linux.'
@@ -56,4 +57,4 @@ if linux:
                     image_data_bucket.download_fileobj(image_name,data)
                 break
     Journal.close()
-print "Finish Downloading Images."
+    print "Finish Downloading Images."
