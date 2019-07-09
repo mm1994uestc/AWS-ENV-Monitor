@@ -1,7 +1,11 @@
-## How to remove the JPG in the AWS's S3 quickly?
-We can use the aws-cli to remove the image-data recursively like this:  
+## How to remove/download/upload the JPG in the AWS's S3 quickly?
+1. Remove:We can use the aws-cli to remove the image-data recursively like this:  
 `aws s3 rm s3://image-data/ --recursive --exclude "*" --include "*_2014_*_V_NU.jpg"`  
 The re-rule is set by this:`*_2014_*_V_NU.jpg`
+2. Download:Use the aws-cli download the image from AWS's S3 directly:
+`aws s3 cp s3://image-data/ ./ --recursive --exclude "*" --include "*_A1_V_NU.jpg"`
+3. Upload:Use the aws-cli download the image from AWS's S3 directly:
+`aws s3 cp ./ s3://image-data/ --recursive --exclude "*" --include "*_A1_V_NU.jpg"`
 ## How to Upload the Picture to the aws server timingly?
 * Step1: `sudo vim /etc/crontab`
 * Step2:  Insert the time-line at the end of file and save it: 
