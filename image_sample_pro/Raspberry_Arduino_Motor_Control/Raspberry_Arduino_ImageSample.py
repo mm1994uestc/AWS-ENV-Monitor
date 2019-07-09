@@ -18,22 +18,7 @@ x_n = 4
 y_n = 8
 
 x_distance = [0,58,100,100] # Unit:mm
-y_distance = [0,60,115,115,115,115,115,40]
-
-'''
-print 'Raspiberry Camera initial...'
-
-camera = PiCamera()
-camera.resolution = (640,480)
-camera.framerate = 32
-camera.hflip = True
-camera.vflip = True
-camera.shutter_speed=6000000
-camera.iso=20
-camera.saturation=0
-camera.brightness=50
-camera.sharpness=0
-'''
+y_distance = [0,20,115,115,115,115,115,35] # [0,60,115,115,115,115,115,40]
 
 pre_min = 0
 min_update = 0
@@ -139,7 +124,7 @@ while True:
     if pre_min != date.tm_min:
         min_update = 1
         pre_min = date.tm_min
-    if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update:
+    if date.tm_hour % 1 == 0 and date.tm_min % 1 == 0 and min_update:
         if date.tm_hour > 19 or date.tm_hour < 8: # Set the Camera's IR Capture func.
             GPIO.output(Camera_IR_Pin,False)
             print 'IR mode is ON!'
