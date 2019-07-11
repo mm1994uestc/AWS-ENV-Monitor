@@ -15,7 +15,7 @@
 You can find the avrdude.conf file is this folder:
 `D:\Program Files (x86)\Arduino\hardware\arduino\avr\bootloaders\gemma`
 6. Download the hex file to the hardware.
-Change the pwd into the HEX-file'folder(HEXOfArduino) firstly.
+Change the pwd into the HEX-file'folder(HEXOfArduino) firstly.  
 `avrdude.exe -C avrdude.conf -v -v -v -v -p m328p -c arduino -P COM3 -b 57600 -D -U flash:w:Raspberry_Arduino_Motor_Control.ino.hex:i`
 7. Finished upload.
 ## The Linux env:
@@ -23,7 +23,7 @@ Change the pwd into the HEX-file'folder(HEXOfArduino) firstly.
 `sudo apt-get install avrdude`
 2. Copy the avrdude.conf file to the upload-folder.
 3. Copy the hex file to the upload-folder.
-4. Use the command to upload the hex file to hardware.
+4. Use the command to upload the hex file to hardware.  
 `avrdude -C avrdude.conf -v -v -v -v -p m328p -c arduino -P /dev/ttyUSB0 -b 57600 -D -U flash:w:Raspberry_Arduino_Motor_Control.ino.hex:i`
 ## Additions,How the use the minicom to communicate with USART protocal?
 * Step1:Install the minicom software.
