@@ -48,8 +48,9 @@ else:
 ser = serial.Serial("/dev/ttyUSB0", 9600)
 ser.flushInput()
 ser.flushOutput()
-CMD = dict({'x-right':'A','x-left':'B','y-down':'C','y-up':'D','x-init':'E','y-init':'F','stop':'S','Hold':'N'})
-print CMD,type(CMD),CMD['x-right']
+Motor_CMD = dict({'x-right':'A','x-left':'B','y-down':'C','y-up':'D','x-init':'E','y-init':'F','stop':'S','Hold':'N'})
+System_CMD = dict({'CO2-ON':'G','CO2-OFF':'H'})
+print Motor_CMD,type(Motor_CMD),Motor_CMD['x-right']
 timeout_count = 0
 recv_data = 'N'
 recv_n = 0
@@ -63,9 +64,10 @@ def ASK_Slave(serial,cmd_data):
         print "Motor is moving: ",timeout_count," times"
         time.sleep(0.5)
         recv_n = serial.inWaiting()
-        print 'recv_n',recv_n
+        print cmd_data,'&& recv_n:',recv_n
         if recv_n >= 2:
             recv_data = serial.read(recv_n)
+            print recv_n,' && ',recv_data
             serial.flushInput()
             if 'OK' in recv_data and cmd_data[0] in recv_data:
                 print 'recv_data_A',recv_data,'+',recv_n
@@ -88,25 +90,25 @@ def ASK_Slave(serial,cmd_data):
 
 def Test_Motor(serial):
     print 'Testing Motor...'
-    CMD_Send = CMD['x-left'] + chr(0)
+    CMD_Send = Motor_CMD['x-left'] + chr(0)
     serial.write(CMD_Send)
     time.sleep(1.5)
-    serial.write(CMD['x-init'])
+    serial.write(Motor_CMD['x-init'])
     time.sleep(2)
-    CMD_Send = CMD['y-down'] + chr(0)
+    CMD_Send = Motor_CMD['y-down'] + chr(0)
     serial.write(CMD_Send)
     time.sleep(1.5)
-    serial.write(CMD['y-init'])
+    serial.write(Motor_CMD['y-init'])
     time.sleep(2)
     print 'Testing Motor Finished.'
 
 def Motor_Control(serial,CMD_IN,distance):
-    global CMD
+    global Motor_CMD
     CMD_Send = CMD_IN + chr(distance) + '\0'
     print CMD_Send
     if 'S' == CMD_Send[0]:
-        serial.write(CMD['stop'])
-        ASK_Slave(serial,CMD['stop'])
+        serial.write(Motor_CMD['stop'])
+        ASK_Slave(serial,Motor_CMD['stop'])
         time.sleep(1.5)
     else:
         serial.write(CMD_Send)
@@ -124,7 +126,11 @@ while True:
     if pre_min != date.tm_min:
         min_update = 1
         pre_min = date.tm_min
-    if date.tm_hour % 1 == 0 and date.tm_min % 1 == 0 and min_update:
+    if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update:
+        if date.tm_hour >= 7 and date.tm_hour < 20:
+            Motor_Control(ser,'G',0);
+        else:
+            Motor_Control(ser,'H',0);
         if date.tm_hour > 19 or date.tm_hour < 8: # Set the Camera's IR Capture func.
             GPIO.output(Camera_IR_Pin,False)
             print 'IR mode is ON!'
@@ -157,13 +163,15 @@ while True:
         print 'image sampling...'
         Test_Motor(ser)
         for x in range(x_n):
-            Motor_Control(ser,CMD['x-left'],x_distance[x]) # X-axis Going ON Positive
+            Motor_Control(ser,Motor_CMD['x-left'],x_distance[x]) # X-axis Going ON Positive
             for y in range(y_n):
+                if x%2 == 0 and y == 0:
+                    Motor_Control(ser,Motor_CMD['y-init'],0)
                 if x%2 == 0 and y != 0:
-                    Motor_Control(ser,CMD['y-down'],y_distance[y])
+                    Motor_Control(ser,Motor_CMD['y-down'],y_distance[y])
                     y_axis_lable += 1
                 if x%2 != 0 and y != 0:
-                    Motor_Control(ser,CMD['y-up'],y_distance[-y])
+                    Motor_Control(ser,Motor_CMD['y-up'],y_distance[-y])
                     y_axis_lable -= 1
                 print x_axis_lable,y_axis_lable
                 path = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_data/"+Position[y_axis_lable][x_axis_lable]+'/'+Mashine_Name+'_'+str(Start_Date.tm_year)+Start_month+Start_day+'_'+str(date.tm_year)+Current_month+Current_day+'_'+Current_hour+Current_min+'_'+Position[y_axis_lable][x_axis_lable]+'_V'+'_NU'+'.jpg'
@@ -197,7 +205,7 @@ while True:
                 Journal.write(path[83:]+'\n') # ADD-line
                 print path
             x_axis_lable += 1
-        Motor_Control(ser,CMD['x-init'],0)
+        Motor_Control(ser,Motor_CMD['x-init'],0)
         x_axis_lable = 0
         y_axis_lable = 0
         Journal.write("Sample Finished.\n")
