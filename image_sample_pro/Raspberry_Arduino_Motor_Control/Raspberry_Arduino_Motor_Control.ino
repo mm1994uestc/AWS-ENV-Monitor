@@ -1,6 +1,7 @@
 #include <GravityTDS.h>
 
 #define CMD_DATA_Len 2
+#define CO2_DATA_Len 8
 
 const int PH_SensorPin = 14;
 float Current_PH = 0;
@@ -16,6 +17,10 @@ const int CO2_Control_Pin = 5;
 
 int Update_Flag = 0;
 char Buffers[CMD_DATA_Len] = {0};
+
+char CO2_CMD[CO2_DATA_Len] = {254,4,0,3,0,1,213,197};
+char CO2_Buffers[CO2_DATA_Len+1] = {0};
+int  CO2_Byte_Counter = 0;
 
 const int Pin_AP = 2;
 const int Pin_AN = 4;
@@ -100,7 +105,7 @@ void x_initial(void)
     digitalWrite(stepperPin, HIGH);
     delayMicroseconds(X_Speed);
     digitalWrite(stepperPin, LOW);
-    delayMicroseconds(X_Speed-20); 
+    delayMicroseconds(X_Speed-20);
   }
   digitalWrite(enPin,1); // Close the 42Motor
   x_abs_position = 0;
@@ -170,6 +175,7 @@ float Get_EC_Val(void)
   gravityTds.update();  //sample and calculate 
   return gravityTds.getTdsValue();  // then get the value
 }
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -195,20 +201,31 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  /*
+  Serial.print("CO2-CMD-Send:");
+  for(CO2_Byte_Counter=0; CO2_Byte_Counter < CO2_DATA_Len; CO2_Byte_Counter++){
+    Serial.print(char(CO2_CMD[CO2_Byte_Counter]));
+  }
+  Serial.println("\n");
+  delay(1000); delay(1000);  delay(1000);
+  CO2_Byte_Counter = 0;
+  while(Serial.available() < CO2_DATA_Len-1) { Serial.println("Waitting for data...");  delay(500); }
+  while(Serial.available() > 0) {
+      Serial.print("Getting the CO2 DATA:");
+      Serial.println(char(CO2_Byte_Counter+48));
+      Serial.readBytes(Buffers+CO2_Byte_Counter,1);
+      CO2_Byte_Counter++;
+   }
+   Buffers[CO2_DATA_Len] = '\0';
+   Serial.print("CO2-Value:");
+   Serial.println(Buffers);
+   delay(1000);  delay(1000);
+   */
+
   while(Serial.available() != 0){
       Serial.readBytes(Buffers,CMD_DATA_Len);
       Update_Flag = 1;
   }
-  
-//  Current_PH = Get_PH_Val(PH_SensorPin); 
-//  Current_EC = Get_EC_Val();
-//  
-//  Serial.print(" PH:");
-//  Serial.print(Current_PH,2);
-//  Serial.println(" ");
-//
-//  Serial.print(Current_EC,0);
-//  Serial.println("ppm");
   
   if(Update_Flag == 1){
     if(Buffers[0] == 'A') {current_steps = int(float(Buffers[1])/x_mm_pp); x_step(1,current_steps);  Serial.println("OK-A");} // 向右后退

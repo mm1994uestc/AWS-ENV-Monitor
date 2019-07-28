@@ -14,6 +14,46 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(Camera_IR_Pin,GPIO.OUT)
 
+def rpi2_usart_open(device,baudrate):
+    return serial.Serial(device,baudrate)
+def rpi2_usart_send(serial,data):
+    # serial.flushOutput()
+    serial.write(data)
+    # serial.flushOutput()
+def rpi2_usart_recv(serial,lenght):
+    buffers = ''
+    while True:
+        FIFO_len = serial.inWaiting()
+        # print "Waiting data:",FIFO_len
+        if lenght <= FIFO_len:
+            buffers = serial.read(FIFO_len)
+            # serial.flushInput()
+            break
+    return buffers
+
+CO2_dev = "/dev/ttyAMA0"
+CO2_baud = 9600
+
+def CO2_USART_Initial(CO2_dev,CO2_baud):
+    return rpi2_usart_open(CO2_dev,CO2_baud)
+def CO2_USART_GetValue(CO2_ser,CO2_CMD):
+    CO2_BUF = ''
+    rpi2_usart_send(CO2_ser,CO2_CMD)
+    CO2_BUF = rpi2_usart_recv(CO2_ser,7)
+                            
+    H_Bits = ord(CO2_BUF[3])
+    L_Bits = ord(CO2_BUF[4])
+                            
+    H_Bits_H = H_Bits>>4
+    H_Bits_L = H_Bits&0x0F
+    L_Bits_H = L_Bits>>4
+    L_Bits_L = L_Bits&0x0F
+                        
+    return H_Bits_H*4096 + H_Bits_L*256 + L_Bits_H*16 + L_Bits_L
+
+CO2_ser = CO2_USART_Initial(CO2_dev,CO2_baud)
+CO2_CMD = chr(254)+chr(4)+chr(0)+chr(3)+chr(0)+chr(1)+chr(213)+chr(197)
+
 x_n = 4
 y_n = 8
 
@@ -55,9 +95,16 @@ timeout_count = 0
 recv_data = 'N'
 recv_n = 0
 
+abs_path = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_sample_Journal.log" # ADD-line
+Journal = open(abs_path,'a')
+Journal.write("################################## System Start:" + str(Start_Date.tm_year) + ':' + str(Start_Date.tm_mon) + ':' + str(Start_Date.tm_mday)+':' + str(Start_Date.tm_hour) + ':' + str(Start_Date.tm_min) + ':' + str(Start_Date.tm_sec) + " ###########################################\n")
+Journal.close()
+
 def ASK_Slave(serial,cmd_data):
     global recv_data,recv_n
+    global abs_path
     timeout_count = 0
+    timeout_total = 0
     print 'recv_n',recv_n
     print 'recv_data_B',recv_data
     while True:
@@ -75,7 +122,10 @@ def ASK_Slave(serial,cmd_data):
                 recv_n = 0
                 recv_data = 'N'
                 serial.flushOutput()
-                time.sleep(1)
+                time.sleep(0.5) # 1
+                Journal = open(abs_path,'a')
+                Journal.write(cmd_data[0] + "->")
+                Journal.close()
                 break
             else:
                 print "Wrong Control,Break!"
@@ -86,7 +136,17 @@ def ASK_Slave(serial,cmd_data):
         if timeout_count >= 600:
             print "No response Slave,Repeat send cmd please."
             serial.write(cmd_data)
+            timeout_total += timeout_count
             timeout_count = 0
+            Journal = open(abs_path,'a')
+            if timeout_total <= 600:
+                Journal.write("\nSlave No response for CMD:" + cmd_data[0] + " " + str(timeout_total) + " times,Repeat Send CMD...\n")
+            else:
+                Journal.write("\nSlave No response for CMD:" + cmd_data[0] + " " + str(timeout_total) + " times,Shutdown System...\n")
+                died_time = time.localtime(time.time())
+                Journal.write("System died at: "+str(died_time.tm_year)+':'+str(died_time.tm_mon)+':'+str(died_time.tm_mday)+':'+str(died_time.tm_hour)+':'+str(died_time.tm_min)+':'+str(died_time.tm_sec)+'.\n')
+                os.system('sudo shudown -h now')
+            Journal.close()
 
 def Test_Motor(serial):
     print 'Testing Motor...'
@@ -116,21 +176,26 @@ def Motor_Control(serial,CMD_IN,distance):
         time.sleep(1)
     time.sleep(1)
 
-abs_path = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_sample_Journal.log" # ADD-line
-Journal = open(abs_path,'a')
-Journal.write("################################## System Start:" + str(Start_Date.tm_year) + ':' + str(Start_Date.tm_mon) + ':' + str(Start_Date.tm_mday)+':' + str(Start_Date.tm_hour) + ':' + str(Start_Date.tm_min) + ':' + str(Start_Date.tm_sec) + " ###########################################\n")
-Journal.close()
-print 'System Start...'
+print 'System Start Monitor...'
 while True:
     date = time.localtime(time.time())
     if pre_min != date.tm_min:
+        print "minutes update..."
+        if date.tm_hour >= 8 and date.tm_hour < 19: # Judge the CO2 detect time.
+            print "Monitor CO2..."
+            Time_Point = str(date.tm_year)+'-'+str(date.tm_mon)+'-'+str(date.tm_mday)+'-'+str(date.tm_hour)+'-'+str(date.tm_min)+'-'+str(date.tm_sec) # ADD-line
+            CO2_PPM = CO2_USART_GetValue(CO2_ser,CO2_CMD) # Get the CO2-Values form Raspiberry<--->CO2_Sensor.
+            print Time_Point,':',CO2_PPM,'ppm'
+            if CO2_PPM < 1000: # Judge the CO2 ppm
+                Motor_Control(ser,'G',0); # Control the CO2-Delay status:ON
+            elif CO2_PPM > 1200:
+                Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
+        else:
+            Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
         min_update = 1
         pre_min = date.tm_min
     if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update:
-        if date.tm_hour >= 7 and date.tm_hour < 20:
-            Motor_Control(ser,'G',0);
-        else:
-            Motor_Control(ser,'H',0);
+        Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
         if date.tm_hour > 19 or date.tm_hour < 8: # Set the Camera's IR Capture func.
             GPIO.output(Camera_IR_Pin,False)
             print 'IR mode is ON!'
@@ -141,6 +206,7 @@ while True:
         Time_NOW = str(date.tm_year)+'-'+str(date.tm_mon)+'-'+str(date.tm_mday)+'-'+str(date.tm_hour)+'-'+str(date.tm_min)+'-'+str(date.tm_sec) # ADD-line
         Journal = open(abs_path,'a') # ADD-line
         Journal.write("Start sampling images:"+Time_NOW+'\n') # ADD-line
+        Journal.close()
         min_update = 0
         print 'Current time:',Time_NOW
         if date.tm_mon >= 10:
@@ -199,16 +265,22 @@ while True:
                     except Exception,e:
                         print 'Camera Wrong!'
                         Camera_Status = 'BUSY'
+                        Journal = open(abs_path,'a')
                         Journal.write("Camera Wrong? "+str(Exception)+':'+str(e)+'\n')
+                        Journal.close()
                         time.sleep(5)
                         pass
+                Journal = open(abs_path,'a')
                 Journal.write(path[83:]+'\n') # ADD-line
+                Journal.close()
                 print path
             x_axis_lable += 1
         Motor_Control(ser,Motor_CMD['x-init'],0)
         x_axis_lable = 0
         y_axis_lable = 0
-        Journal.write("Sample Finished.\n")
-        Journal.close() # ADD-line
         Time_End = time.time()
-        print '################ Time cost: ',(Time_End-Time_Start)/60,' minutes. ####################'
+        TimeCost = (Time_End-Time_Start)/60
+        print '################ Time cost: ',TimeCost,' minutes. ####################'
+        Journal = open(abs_path,'a')
+        Journal.write("Sample Finished.(TimeCost:"+str(TimeCost)+" mins)\n")
+        Journal.close() # ADD-line
