@@ -33,7 +33,7 @@ The SMBus is similar with IIC protocal,we can use SMBus instead of IIC. How to U
 **Step2:** Run the py's script Code.  
 `python Si7021.py`  
 ## 3. Fans_Control.py
-The Fans_Control.py file maintainly used to monitor the temprature of CPU and Control the Fans's Power Supply.If temp is High,Fans is ON.
+The Fans_Control.py file maintainly used to monitor the temprature of CPU and Control the Fans's Power Supply.If temp is High,Fans is ON.  
 **Step1:** Install the GPIO Control Python'lib.  
 `sudo pip install rpi.gpio`  
 **Step2:** Read the temp of CPU.  
