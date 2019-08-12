@@ -43,8 +43,8 @@ then
 fi
 ```  
 * Reference && Notice:  
-Ref: [Linux命令行烧录树莓派镜像至SD卡](http://shumeipai.nxez.com/2013/12/08/linux-command-line-burn-raspberry-pi-mirror-to-sd-card.html)  
-Not: If you are using 2019-04-08-raspbian-stretch-full.img to create the system,you need at least 5G Space.  
+R: [Linux命令行烧录树莓派镜像至SD卡](http://shumeipai.nxez.com/2013/12/08/linux-command-line-burn-raspberry-pi-mirror-to-sd-card.html)  
+N: If you are using 2019-04-08-raspbian-stretch-full.img to create the system,you need at least 5G Space.  
 ## How to make a new image file by SD-Card Content?  
 * Make Image File.  
 1. On Window Env.  
@@ -72,10 +72,10 @@ then
     echo "Finish Reading image."
 fi
 ```  
-* Diff between Compressed-Img and Whole-Img to make a new image:  
+* Recovery Image-System by Compressed-Img Or Whole-Img:  
 1. Compressed-Img: `gunzip --stdout raspbian.img.gz | sudo dd bs=4M of=/dev/sdb`  
 2. Whole-Img: `sudo dd bs=4M if=raspbian.img of=/dev/sdb`  
 * Reference && Notice:  
-Ref: [官方备份步骤](https://www.raspberrypi.org/documentation/linux/filesystem/backup.md)  
-Ref: [Raspberry-系统备份](https://wuziqingwzq.github.io/raspberrypi/2017/08/15/raspberry-backup.html)  
-Ref: [Linux制作Raspberry最小镜像](https://blog.csdn.net/u013451404/article/details/80552765)  
+R: [官方备份步骤](https://www.raspberrypi.org/documentation/linux/filesystem/backup.md)  
+R: [Raspberry-系统备份](https://wuziqingwzq.github.io/raspberrypi/2017/08/15/raspberry-backup.html)  
+R: [Linux制作Raspberry最小镜像](https://blog.csdn.net/u013451404/article/details/80552765)  
