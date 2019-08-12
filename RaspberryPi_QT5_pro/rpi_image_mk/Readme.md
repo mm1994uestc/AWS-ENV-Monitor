@@ -12,16 +12,14 @@ Step3. Insert your TF-Card into your computer(window/Ubuntu) and begin to make n
 * If your are a Linux user, Please do like this:  
   1. Change directory to the image file's dir.  
   2. Checkout the device mounted just now.[eg:]  
-  ```
-  mount -ls
-  /dev/sdb1 on /mnt/raspberry-rootfs type ext4 (rw,relatime,data=ordered) [rootfs]
-  ```  
-  3. Unmount the device make it could not be changed by Other User so that we can create the image safely. `umount /dev/sdb1`  
+  `mount -ls`  
+  `/dev/sdb1 on /mnt/raspberry-rootfs type ext4 (rw,relatime,data=ordered) [rootfs]`  
+  3. Unmount the device make it could not be changed by Other User so that we can create the image safely.  
+  `umount /dev/sdb1`  
   4. Use the dd CMD to Create the image.  
   `sudo dd bs=4M if=~/raspberry/Reference/2019-04-08-raspbian-stretch-full.img of=/dev/sdb`  
 * Here the bash script(mkimg.sh) for Linux User to directly create the image(Notice some change need to be done for your own env):  
 ```
-echo "############################################### Step-Make New Image For Disk ############################"
 read -p "Create a new image.Need to Create New Image and already Insert Disk?(yes/no):"  mknewimage
 if [ "$mknewimage" = "yes" -o "$mknewimage" = "y" ]
 then
@@ -44,9 +42,40 @@ then
     echo "Creating new image Finished."
 fi
 ```  
+* Reference:  
+[Linux命令行烧录树莓派镜像至SD卡](http://shumeipai.nxez.com/2013/12/08/linux-command-line-burn-raspberry-pi-mirror-to-sd-card.html)
 ## How to make a new image file by SD-Card Content?  
+* Make Image File.  
 1. On Window Env.  
 We can directly use the [Win32DiskImager](https://sourceforge.net/projects/win32diskimager/) software to Get a new image file from SD-Card.  
+![Win32DiskImager]()
 The yellow arrow means to Read the image from SD-Card.  
 The Black arrow means to Write a new image to the SD-Card.  
-2. On Linux Env.
+2. On Linux Env.  
+We just need to Create a shell script(imgmk.sh) so that we could read the image out.  
+```
+read -p "Make a new image with the software installed!Already Insert Disk?(yes/no):"  mkqtimage
+if [ "$mkqtimage" = "yes" -o "$mkqtimage" = "y" ]
+then
+    bootMountState=$(mount -ls | grep boot | grep /dev/)
+    rootfsMountState=$(mount -ls | grep rootfs | grep /dev)
+    if [ "$bootMountState" = "" -a "$rootfsMountState" = "" ]
+    then
+        echo "The RaspberryPi's Image mount failed!"
+        echo "Please Manual Operation to mount the image."
+        exit 1
+    fi
+    echo "Mounting is OK! Let's Read the Image from SD-Card.Please waitting..."
+    sudo dd if=/dev/sdb of=raspberry-working-image.img
+    echo "Finish Reading image."
+    echo "Getting the offset for the Linux image to mount it."
+    sudo /sbin/losetup /dev/loop0 raspberry-working-image.img
+    sudo /sbin/fdisk -l /dev/loop0
+
+    ImageStartBytes=50331648
+    echo "The size of image is calculated: Start_Sector*512(Bytes/Sector)"
+    echo "The default ImageStartBytes is:" $ImageStartBytes
+fi
+```
+* Reference:  
+[Raspberry-系统备份](https://wuziqingwzq.github.io/raspberrypi/2017/08/15/raspberry-backup.html)
