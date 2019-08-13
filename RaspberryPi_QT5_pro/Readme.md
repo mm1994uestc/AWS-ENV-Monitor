@@ -128,7 +128,7 @@ $ sudo dd if=/dev/sdb of=raspberry-working-image.img
 7761920+0 records out
 3974103040 bytes (4.0 GB) copied, 253.641 s, 15.7 MB/s
 ```  
-* You will need the offset for the Linux image to mount it. If it's not otherwise provided with the download, you can determine it using losetup. There are 512 bytes per sector, so in the example below the offset is 122880 * 512 = 62914560.   
+* You will need the offset for the Linux image to mount it. If it's not otherwise provided with the download, you can determine it using losetup. There are 512 bytes per sector, so in the example below the offset is 122880 * 512 = 62914560.([Using losetup](https://www.cnblogs.com/uestc-mm/p/11345359.html))   
 ```
 $ sudo /sbin/losetup /dev/loop0 raspberry-working-image.img
 $ sudo /sbin/fdisk -l /dev/loop0
