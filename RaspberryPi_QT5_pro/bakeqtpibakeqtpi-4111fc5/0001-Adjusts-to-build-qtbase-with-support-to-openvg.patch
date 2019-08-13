@@ -1,0 +1,42 @@
+From 53bd48a30e8928e4858293fc3b59588823581873 Mon Sep 17 00:00:00 2001
+From: Daniel Bittencourt <daniel.bittencourt@openbossa.org>
+Date: Thu, 3 Jan 2013 15:03:24 -0400
+Subject: [PATCH] Adjusts to build qtbase with support to openvg.
+
+Signed-off-by: Daniel Bittencourt <daniel.bittencourt@openbossa.org>
+---
+ config.tests/unix/openvg/openvg.pro          |    4 ----
+ mkspecs/devices/linux-rasp-pi-g++/qmake.conf |    4 ++++
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/config.tests/unix/openvg/openvg.pro b/config.tests/unix/openvg/openvg.pro
+index 4bbde99..a2315f7 100644
+--- a/config.tests/unix/openvg/openvg.pro
++++ b/config.tests/unix/openvg/openvg.pro
+@@ -12,8 +12,4 @@ openvg_on_opengl {
+     !isEmpty(QMAKE_LIBS_OPENGL): LIBS += $$QMAKE_LIBS_OPENGL
+ }
+ 
+-lower_case_includes {
+-    DEFINES += QT_LOWER_CASE_VG_INCLUDES
+-}
+-
+ CONFIG -= qt
+diff --git a/mkspecs/devices/linux-rasp-pi-g++/qmake.conf b/mkspecs/devices/linux-rasp-pi-g++/qmake.conf
+index a6365d8..4307f80 100644
+--- a/mkspecs/devices/linux-rasp-pi-g++/qmake.conf
++++ b/mkspecs/devices/linux-rasp-pi-g++/qmake.conf
+@@ -16,6 +16,10 @@ QMAKE_INCDIR_OPENGL_ES2 = $${QMAKE_INCDIR_EGL}
+ 
+ QMAKE_LIBS_EGL          = -lEGL -lGLESv2
+ 
++QMAKE_INCDIR_OPENVG     = $${QMAKE_INCDIR_EGL}
++QMAKE_LIBDIR_OPENVG     = $${QMAKE_LIBDIR_OPENGL_ES2}
++QMAKE_LIBS_OPENVG       = $${QMAKE_LIBS_EGL}
++
+ contains(DISTRO, squeeze) {
+     #Debian Squeeze: Legacy everything
+     QMAKE_LIBS_OPENGL_ES2   = -lGLESv2 -lEGL
+-- 
+1.7.9.5
+

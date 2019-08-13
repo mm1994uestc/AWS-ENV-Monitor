@@ -1,0 +1,31 @@
+For OSX:
+Requirements:
+XCode commandline tools (https://developer.apple.com/downloads/index.action)
+Homebrew (http://mxcl.github.com/homebrew/)
+
+Once both are installed, execute the following (as non-root)
+$ brew install ctorrent wget
+$ brew install e2fsprogs mpfr gmp libmpc libelf texinfo --env=std #env=std needed due to mpfr failing to compile
+
+Then, simply run the script:
+
+$ ./bakeqtpi.bash
+
+
+For Ubuntu:
+You need to install the following packages:
+
+$ sudo apt-get install build-essential git ia32-libs ctorrent unzip
+
+Then, simply run the script:
+
+$ ./bakeqtpi.bash
+
+For Centos:
+
+$ rpm -i http://mirrors.coreix.net/fedora-epel/6/i386/epel-release-6-7.noarch.rpm
+$ yum groupinstall "Development Tools"
+$ yum install ctorrent compat-libstdc++-296.i686 compat-libstdc++-33.i686 wget libstdc++.so.6
+
+Needed because fixQualifiedLibraryPaths requires sudo.
+$ yum install sudo
