@@ -1,6 +1,7 @@
-# Create new Raspberry-Image. (Opencv/QT5/wiringPi/PythonLib/ENV)  
-## How to Create a new image on SD-Card?   
-Step1. Download the image.zip file from [here](https://www.raspberrypi.org/downloads/).  
+![RPi](https://cl.ly/851753b3601b/Raspbian.jpg)  
+## _Create new Raspberry-Image.(Opencv/QT5/wiringPi/PythonLib/ENV)_
+## 1. How to Create a new image on SD-Card?   
+Step1. Download the image.zip file from [Official Edition](https://www.raspberrypi.org/downloads/) && [Other Rpi-Sys Edition](http://downloads.raspberrypi.org/raspbian/images/).  
 Step2. unzip the image file into a new .img file.  
 `unzip 2019-04-08-raspbian-stretch-full.zip`  
 Step3. Insert your TF-Card into your computer(window/Ubuntu) and begin to make new image.    
@@ -42,14 +43,17 @@ then
     echo "Creating new image Finished."
 fi
 ```  
+After your Finished create the image:  
+![Mount -ls](https://cl.ly/5d57f8d58fab/mount-ls.png)
 * Reference && Notice:  
 R: [Linux命令行烧录树莓派镜像至SD卡](http://shumeipai.nxez.com/2013/12/08/linux-command-line-burn-raspberry-pi-mirror-to-sd-card.html)  
 N: If you are using 2019-04-08-raspbian-stretch-full.img to create the system,you need at least 5G Space.  
-## How to make a new image file by SD-Card Content?  
+![Raspbian Size](https://cl.ly/8fa6775312cb/SD_Size.png)
+## 2. How to make a new image file by SD-Card Content?  
 * Make Image File.  
 1. On Window Env.  
 We can directly use the [Win32DiskImager](https://sourceforge.net/projects/win32diskimager/) software to Get a new image file from SD-Card.  
-![Win32DiskImager]()
+![Win32DiskImager](https://cl.ly/a9653065dedc/Win32DiskImager.png)  
 The yellow arrow means to Read the image from SD-Card.  
 The Black arrow means to Write a new image to the SD-Card.  
 2. On Linux Env.  
@@ -72,6 +76,8 @@ then
     echo "Finish Reading image."
 fi
 ```  
+The compressed image res:  
+![Compressed](https://cl.ly/c57b10cc87f9/compress-image-size.png)  
 * Recovery Image-System by Compressed-Img Or Whole-Img:  
 1. Compressed-Img: `gunzip --stdout raspbian.img.gz | sudo dd bs=4M of=/dev/sdb`  
 2. Whole-Img: `sudo dd bs=4M if=raspbian.img of=/dev/sdb`  
