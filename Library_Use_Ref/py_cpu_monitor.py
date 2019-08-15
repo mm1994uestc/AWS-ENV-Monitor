@@ -33,4 +33,5 @@ T2 = time.time()
 print "Time Cost:",(T2-T1)
 print "The Tempratrue is:",Temp_Value
 print "The CPU_percent:",CPU_percent
-print "The Memory_percent:",type(Mem_State[1]),"%"
+print "The Memory_percent:",Mem_State[1],"%"
+print "The CPU Number:",psutil.cpu_count(logical=False)
