@@ -59,30 +59,30 @@ Change the pwd into the HEX-file'folder(HEXOfArduino) firstly.
 4. Finished the aws-cli configration and then you can download hex file with boto3-python script.  
 # Install The Opencv For Raspberry.  
 1. If your just need to use the Opencv lib for Python,run the cmd below.  
-  ```
-  sudo apt-get install python-opencv
-  pip install numpy
-  ```  
-  Test opencv have been already setup.  
-  ```
-  import os
-  import sys
-  import cv2
-  import numpy as np
-  I = cv2.imread('Test.jpg',cv2.IMREAD_UNCHANGED)
-  I_w = np.size(I, 0)
-  I_h = np.size(I, 1)
-  print I[1,2,1],I_w,I_h
-  if os.path.exists('/dev/video0') == False:
-      print "No Camera Devices."
-      sys.exit(2)
-  cap = cv2.VideoCapture(0)
-  i = 0
-  while True:
-      ret,frame = cap.read()
-      cv2.imwrite('Sample.jpg',frame)
-      i += 1
-      print i
-  cap.release()
-  ```  
+   ```
+   sudo apt-get install python-opencv
+   pip install numpy
+   ```  
+   Test opencv have been already setup.  
+   ```
+   import os
+   import sys
+   import cv2
+   import numpy as np
+   I = cv2.imread('Test.jpg',cv2.IMREAD_UNCHANGED)
+   I_w = np.size(I, 0)
+   I_h = np.size(I, 1)
+   print I[1,2,1],I_w,I_h
+   if os.path.exists('/dev/video0') == False:
+       print "No Camera Devices."
+       sys.exit(2)
+   cap = cv2.VideoCapture(0)
+   i = 0
+   while True:
+       ret,frame = cap.read()
+       cv2.imwrite('Sample.jpg',frame)
+       i += 1
+       print i
+   cap.release()
+   ```  
 2. If your need to use C to development your app,you need to compile all the source code of Opencv and create the new opencv's lib for C.  
