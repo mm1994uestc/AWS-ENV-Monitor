@@ -57,6 +57,66 @@ Change the pwd into the HEX-file'folder(HEXOfArduino) firstly.
    Default output format [None]: json
    ```
 4. Finished the aws-cli configration and then you can download hex file with boto3-python script.  
+# How to Communicate between Raspberry and Arduino by USART?  
+* Coding:  
+```
+#! /usr/bin/python
+import serial
+import string
+import time
+
+# Raspberry Pi GPIO Serial Port settings
+rpiCOM = '/dev/ttyAMA0'
+baud = 9600
+xtimes = 0
+inbuff = 0
+msgCOM = ""
+
+# Setup - if serial port can't be open an Exception will be raised
+while True:
+    try:
+        print 'Opening port'
+        ser = serial.Serial(rpiCOM, baud, timeout=0, stopbits=serial.STOPBITS_O$
+        #time.sleep(10)
+        print 'Port OPEN'
+        # go out of while loop when connection is made
+        break
+    except serial.SerialException:
+        print 'COM port ' + rpiCOM + ' not available. Wait...'
+        time.sleep(3)
+# Get input from serial buffer
+while True:
+    try:
+        str = ""
+        print " Ready to check inbuff: " + msgCOM
+        while 1:
+         inbuff = ser.inWaiting()
+         if inbuff > 0:
+           msgCOM = ser.read(3)
+           if msgCOM != '':
+                xtimes += 1
+                print xtimes
+                print "PIC Says: " + msgCOM
+                print "inWaiting: %d" %inbuff
+                ser.flushInput()
+                inbuff = ser.inWaiting()
+                print "Clear inbuff: %d" %inbuff
+                ser.write('$OK')
+                msgCOM = ""
+                break
+           else:
+                print "NOK Message: " + msgCOM
+         else:
+          # print "Buffer empty:  " + msgCOM
+           time.sleep(1)
+    except serial.serialutil.SerialException:
+        print "Serial Exception raised"
+        pass
+
+```  
+* Reference:  
+[Arduino and Raspberry Pi Serial Communication](https://codeandlife.com/2012/07/29/arduino-and-raspberry-pi-serial-communication/)  
+[pyserial 3.4](https://pypi.org/project/pyserial/)  
 # Install The Opencv For Raspberry.  
 1. If your just need to use the Opencv lib for Python,run the cmd below.  
    ```
