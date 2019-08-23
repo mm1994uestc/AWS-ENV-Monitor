@@ -244,27 +244,39 @@ def Serial_Get():
     return ser
 
 print 'System Start Monitor...'
+CO2_Status = '?'
 while True:
     date = time.localtime(time.time())
     if pre_min != date.tm_min:
         print "minutes update..."
-        ser = Serial_Get()
+        # ser = Serial_Get()
         if date.tm_hour >= 8 and date.tm_hour < 19: # Judge the CO2 detect time.
             print "Monitor CO2..."
             Time_Point = str(date.tm_year)+'-'+str(date.tm_mon)+'-'+str(date.tm_mday)+'-'+str(date.tm_hour)+'-'+str(date.tm_min)+'-'+str(date.tm_sec) # ADD-line
             CO2_PPM = CO2_USART_GetValue(CO2_ser,CO2_CMD) # Get the CO2-Values form Raspiberry<--->CO2_Sensor.
             print Time_Point,':',CO2_PPM,'ppm'
             if CO2_PPM < 1000: # Judge the CO2 ppm
-                Motor_Control(ser,'G',0); # Control the CO2-Delay status:ON
+                if CO2_Status != 'G':
+                    ser = Serial_Get()
+                    Motor_Control(ser,'G',0); # Control the CO2-Delay status:ON
+                    ser.close()
+                    CO2_Status = 'G'
             elif CO2_PPM > 1200:
-                Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
+                if CO2_Status != 'H':
+                    ser = Serial_Get()
+                    Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
+                    CO2_Status = 'H'
+                    ser.close()
         else:
-            Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
-        ser.close()
+            if CO2_Status != 'H':
+                ser = Serial_Get()
+                Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
+                CO2_Status = 'H'
+                ser.close()
         print "Serial been Closed now."
         min_update = 1
         pre_min = date.tm_min
-    if date.tm_hour % 1 == 0 and date.tm_min % 1 == 0 and min_update and date.tm_hour >= 8 and date.tm_hour < 19:
+    if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update and date.tm_hour >= 8 and date.tm_hour < 19:
         time.sleep(2) # Wait for Serial been closed.
         ser = Serial_Get()
         Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
