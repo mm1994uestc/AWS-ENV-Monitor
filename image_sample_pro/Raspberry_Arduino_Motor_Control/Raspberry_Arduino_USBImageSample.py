@@ -273,13 +273,13 @@ while True:
                 Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
                 CO2_Status = 'H'
                 ser.close()
-        print "Serial been Closed now."
         min_update = 1
         pre_min = date.tm_min
     if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update and date.tm_hour >= 8 and date.tm_hour < 19:
         time.sleep(2) # Wait for Serial been closed.
         ser = Serial_Get()
         Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
+        CO2_Status = 'H'
         if date.tm_hour > 19 or date.tm_hour < 8: # Set the Camera's IR Capture func.
             GPIO.output(Camera_IR_Pin,False)
             print 'IR mode is ON!'
