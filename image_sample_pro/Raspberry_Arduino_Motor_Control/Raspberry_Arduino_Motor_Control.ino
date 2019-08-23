@@ -114,6 +114,7 @@ void x_initial(void)
 void y_initial(void)
 {
   y_step(0,y_abs_position); // We first control the motor back itself,and then we use the IR-Sensor to check it.
+  /*
   while(digitalRead(Y_Trigger) == 1){ // Judge the condition cost the time.We define it about 20us.
       digitalWrite(Pin_AP,HIGH); digitalWrite(Pin_AN,LOW);
       digitalWrite(Pin_BP,LOW);  digitalWrite(Pin_BN,HIGH);
@@ -127,7 +128,7 @@ void y_initial(void)
       digitalWrite(Pin_AP,LOW); digitalWrite(Pin_AN,HIGH);
       digitalWrite(Pin_BP,LOW);  digitalWrite(Pin_BN,HIGH);
       delayMicroseconds(Y_Speed_us-20);
-  }
+  }*/
   digitalWrite(Pin_AP,0); digitalWrite(Pin_AN,0); // Close the micro motor
   digitalWrite(Pin_BP,0); digitalWrite(Pin_BN,0);
   y_abs_position = 0;

@@ -86,9 +86,9 @@ if Start_Date.tm_mday >= 10:
 else:
     Start_day = '0' + str(Start_Date.tm_mday)
 
-ser = serial.Serial("/dev/ttyUSB0", 9600)
-ser.flushInput()
-ser.flushOutput()
+# ser = serial.Serial("/dev/ttyUSB0", 9600)
+# ser.flushInput()
+# ser.flushOutput()
 Motor_CMD = dict({'x-right':'A','x-left':'B','y-down':'C','y-up':'D','x-init':'E','y-init':'F','stop':'S','Hold':'N'})
 System_CMD = dict({'CO2-ON':'G','CO2-OFF':'H'})
 print Motor_CMD,type(Motor_CMD),Motor_CMD['x-right']
@@ -101,6 +101,19 @@ Journal = open(abs_path,'a')
 Journal.write("################################## System Start:" + str(Start_Date.tm_year) + ':' + str(Start_Date.tm_mon) + ':' + str(Start_Date.tm_mday)+':' + str(Start_Date.tm_hour) + ':' + str(Start_Date.tm_min) + ':' + str(Start_Date.tm_sec) + " ###########################################\n")
 Journal.close()
 
+def Journal_log(log,path='?'):
+    DefaultPath = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_sample_Journal.log"
+    if path == '?':
+        path = DefaultPath
+    Journal = open(path,'a')
+    Journal.write(log)
+    Journal.close()
+def Get_time_str(separator,struct=''):
+    if struct == '':
+        time_struct_val = time.localtime(time.time())
+        return str(time_struct_val.tm_year) + separator + str(time_struct_val.tm_mon) + separator + str(time_struct_val.tm_mday)+ separator + str(time_struct_val.tm_hour) + separator + str(time_struct_val.tm_min) + separator + str(time_struct_val.tm_sec) 
+    return str(struct.tm_year) + separator + str(struct.tm_mon) + separator + str(struct.tm_mday)+ separator + str(struct.tm_hour) + separator + str(struct.tm_min) + separator + str(struct.tm_sec)
+
 def ASK_Slave(serial,cmd_data):
     global recv_data,recv_n
     global abs_path
@@ -108,10 +121,30 @@ def ASK_Slave(serial,cmd_data):
     timeout_total = 0
     print 'recv_n',recv_n
     print 'recv_data_B',recv_data
+    recv_n = 0
+    recv_data = 'N'
     while True:
         print "Motor is moving: ",timeout_count," times"
         time.sleep(0.5)
-        recv_n = serial.inWaiting()
+        USART_Status = 'BUSY'
+        inWaiting_count = 0
+        while USART_Status == 'BUSY':
+            try:
+                recv_n = serial.inWaiting()
+                USART_Status = 'FREE'
+                inWaiting_count = 0
+                pass
+            except Exception,e:
+                print 'USART Wrong!'
+                USART_Status = 'BUSY'
+                Journal_log(log=Get_time_str(':')+"-USART Error:"+str(Exception)+str(e)+'\n')
+                inWaiting_count += 1
+                if inWaitiing_count > 3:
+                    inWaiting_count = 0
+                    print 'Goto Repeate CMD Send.'
+                    break
+                time.sleep(3)
+                pass
         print cmd_data,'&& recv_n:',recv_n
         if recv_n >= 2:
             recv_data = serial.read(recv_n)
@@ -124,9 +157,6 @@ def ASK_Slave(serial,cmd_data):
                 recv_data = 'N'
                 serial.flushOutput()
                 time.sleep(0.5) # 1
-                # Journal = open(abs_path,'a')
-                # Journal.write(cmd_data[0] + "->")
-                # Journal.close()
                 break
             else:
                 print "Wrong Control,Break!"
@@ -134,19 +164,21 @@ def ASK_Slave(serial,cmd_data):
                 recv_data = 'N'
                 serial.flushOutput()
         timeout_count += 1
-        if timeout_count >= 600:
+        if timeout_count >= 30:
             print "No response Slave,Repeat send cmd please."
             serial.write(cmd_data)
             timeout_total += timeout_count
             timeout_count = 0
             Journal = open(abs_path,'a')
-            if timeout_total <= 600:
+            if timeout_total <= 60:
                 Journal.write("\nSlave No response for CMD:" + cmd_data[0] + " " + str(timeout_total) + " times,Repeat Send CMD...\n")
             else:
                 Journal.write("\nSlave No response for CMD:" + cmd_data[0] + " " + str(timeout_total) + " times,Shutdown System...\n")
                 died_time = time.localtime(time.time())
                 Journal.write("System died at: "+str(died_time.tm_year)+':'+str(died_time.tm_mon)+':'+str(died_time.tm_mday)+':'+str(died_time.tm_hour)+':'+str(died_time.tm_min)+':'+str(died_time.tm_sec)+'.\n')
-                os.system('sudo shudown -h now')
+                os.system('sync')
+                time.sleep(1)
+                os.system('sudo shutdown -r now')
             Journal.close()
 
 def Test_Motor(serial):
@@ -177,11 +209,46 @@ def Motor_Control(serial,CMD_IN,distance):
         time.sleep(1)
     time.sleep(1)
 
+def Serial_Get():
+    USB_dev = ''
+    find_count = 0
+    while USB_dev == '':
+        dev_list = os.listdir('/dev/')
+        for dev in dev_list:
+            if 'USB' in dev:
+                USB_dev = dev
+                print 'USB device founded:',USB_dev
+                find_count = 0
+                break
+        find_count += 1
+        if find_count >= 30:
+            Journal_log(log=Get_time_str(':')+'-Error:Arduino Device Not Founded.Restart Arduino.\n')
+            print 'Restart the Arduino Power supply by raspberry\'s GPIO Directly.'
+        time.sleep(1)
+    serial_dev = '/dev/' +  USB_dev
+    Serial_Status = 'BUSY'
+    while Serial_Status == 'BUSY':
+        try:
+            ser = serial.Serial(serial_dev, 9600)
+            Serial_Status = 'FREE'
+            print 'Serial Opened Successful.'
+            pass
+        except Exception,e:
+            print 'Serial Opend Failed!Try again.'
+            Serial_Status = 'BUSY'
+            Journal_log(log=Get_time_str(':')+'-Serial Error:'+str(Exception)+str(e)+'\n')
+            time.sleep(5)
+            pass
+    ser.flushInput()
+    ser.flushOutput()
+    return ser
+
 print 'System Start Monitor...'
 while True:
     date = time.localtime(time.time())
     if pre_min != date.tm_min:
         print "minutes update..."
+        ser = Serial_Get()
         if date.tm_hour >= 8 and date.tm_hour < 19: # Judge the CO2 detect time.
             print "Monitor CO2..."
             Time_Point = str(date.tm_year)+'-'+str(date.tm_mon)+'-'+str(date.tm_mday)+'-'+str(date.tm_hour)+'-'+str(date.tm_min)+'-'+str(date.tm_sec) # ADD-line
@@ -193,9 +260,13 @@ while True:
                 Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
         else:
             Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
+        ser.close()
+        print "Serial been Closed now."
         min_update = 1
         pre_min = date.tm_min
-    if date.tm_hour % 1 == 0 and date.tm_min % 1 == 0 and min_update:
+    if date.tm_hour % 1 == 0 and date.tm_min % 1 == 0 and min_update and date.tm_hour >= 8 and date.tm_hour < 19:
+        time.sleep(2) # Wait for Serial been closed.
+        ser = Serial_Get()
         Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
         if date.tm_hour > 19 or date.tm_hour < 8: # Set the Camera's IR Capture func.
             GPIO.output(Camera_IR_Pin,False)
@@ -266,7 +337,7 @@ while True:
                         Error_tm = time.localtime(time.time())
                         Error_tm_str = str(Error_tm.tm_year) + ':' + str(Error_tm.tm_mon) + ':' + str(Error_tm.tm_mday) + ':' + str(Error_tm.tm_hour) + ':' + str(Error_tm.tm_min) + ':' + str(Error_tm.tm_sec)
                         Journal = open(abs_path,'a')
-                        Journal.write(Error_tm_str + "-Camera Wrong? "+str(Exception)+':'+str(e)+'\n')
+                        Journal.write(Error_tm_str + "-USBCamera Wrong? "+str(Exception)+':'+str(e)+'\n')
                         Journal.close()
                         time.sleep(10)
                         pass
@@ -276,6 +347,8 @@ while True:
                 print path
             x_axis_lable += 1
         Motor_Control(ser,Motor_CMD['x-init'],0)
+        ser.close()
+        print "Serial been Closed now."
         x_axis_lable = 0
         y_axis_lable = 0
         Time_End = time.time()
