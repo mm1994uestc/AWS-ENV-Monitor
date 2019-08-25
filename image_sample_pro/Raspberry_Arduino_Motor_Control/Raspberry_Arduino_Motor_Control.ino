@@ -1,16 +1,18 @@
 #include <GravityTDS.h>
+#include <Wire.h>
+
+#define ADDRESS_SI7021 0x40
+#define MEASURE_RH_HOLD 0xE5
+#define READ_T_FROM_PRE_RH_MEASUREMENT 0xE0
 
 #define CMD_DATA_Len 2
-#define CO2_DATA_Len 8
 
-const int PH_SensorPin = 14;
+const int PH_SensorPin = A14;
 float Current_PH = 0;
 
-const int EC_SensorPin = 3;
+const int EC_SensorPin = A15;
 GravityTDS gravityTds;
 float temperature = 25,Current_EC = 0;
-
-const int CO2_Control_Pin = 5;
 
 #define x_mm_pp 0.0711
 #define y_mm_pp 0.0625// 1:100=0.0625 1:50=0.125
@@ -18,15 +20,15 @@ const int CO2_Control_Pin = 5;
 int Update_Flag = 0;
 char Buffers[CMD_DATA_Len] = {0};
 
-char CO2_CMD[CO2_DATA_Len] = {254,4,0,3,0,1,213,197};
-char CO2_Buffers[CO2_DATA_Len+1] = {0};
-int  CO2_Byte_Counter = 0;
+#define CMD_len 8
+int Current_CO=0;
+unsigned char CMD_Array[8] = {0xFE,0x04,0x00,0x03,0x00,0x01,0xD5,0xC5};
 
 const int Pin_AP = 2;
-const int Pin_AN = 4;
-const int Pin_BP = 12;
-const int Pin_BN = 13;
-const int Y_Trigger = 10;
+const int Pin_AN = 3;
+const int Pin_BP = 4;
+const int Pin_BN = 5;
+const int Y_Trigger = 6;
 const int Y_Speed_us = 1800; //1800 us Unit:us
 
 const int dirPin = 8;
@@ -38,6 +40,21 @@ const int X_Speed = 800;
 unsigned int x_abs_position = 0;
 unsigned int y_abs_position = 0;
 int current_steps = 0;
+
+#define Delay_Device 7
+const int CO2_Control_Pin = 18,whiteLight_Pin = 19,GorwLight1_Pin = 24,GorwLight2_Pin = 25,DosingPump1_Pin = 22,DosingPump2_Pin = 23,DosingPump3_Pin = 26;
+const int Delay_PinList[Delay_Device] = {CO2_Control_Pin,whiteLight_Pin,GorwLight1_Pin,GorwLight2_Pin,DosingPump1_Pin,DosingPump2_Pin,DosingPump3_Pin};
+void DelayPin_initial(int *PinList,int len)
+{
+  int i=0;
+  for(i=0;i<len;i++){
+    pinMode(PinList[i],OUTPUT);
+  }
+}
+void DelayPin_Control(int PinNum,int state)
+{
+  digitalWrite(PinNum,state);
+}
 
 void x_step(boolean dir,int steps)
 {
@@ -139,7 +156,6 @@ void Stop_Motor(void)
   digitalWrite(Pin_AP,LOW); digitalWrite(Pin_AN,LOW); digitalWrite(Pin_BP,LOW); digitalWrite(Pin_BN,LOW); digitalWrite(enPin,1);
 }
 
-
 float Get_PH_Val(const int PH_SensorPin)
 {
   unsigned long int avgValue;  //Store the average value of the sensor feedback
@@ -176,10 +192,78 @@ float Get_EC_Val(void)
   gravityTds.update();  //sample and calculate 
   return gravityTds.getTdsValue();  // then get the value
 }
+float SI7021_Get_Temp(void)
+{
+  byte buffer[] = {0, 0};
+  word outTemp = 0;
+  float valueTemp = 0;
+
+  Wire.beginTransmission(ADDRESS_SI7021);
+  Wire.write(READ_T_FROM_PRE_RH_MEASUREMENT);
+  Wire.endTransmission();
+
+  Wire.requestFrom(ADDRESS_SI7021, 2);
+  if(Wire.available() >= 2){
+    buffer[0] = Wire.read(); //high byte
+    buffer[1] = Wire.read(); //low byte; no crc  
+  }
+  outTemp = (buffer[0]<<8) | buffer[1];
+  valueTemp = 175.72*outTemp/65536 - 46.85;
+  return valueTemp;
+}
+
+float SI7021_Get_Humi(void)
+{
+  byte buffer[] = {0, 0, 0};
+  word outHumi = 0;
+  float valueHumi = 0;
+
+  Wire.beginTransmission(ADDRESS_SI7021);  
+  Wire.write(MEASURE_RH_HOLD);
+  Wire.endTransmission();
+
+  Wire.requestFrom(ADDRESS_SI7021, 3);
+  if(Wire.available() >= 3){
+    buffer[0] = Wire.read(); //high byte
+    buffer[1] = Wire.read(); //low byte
+    buffer[2] = Wire.read(); //crc
+  }
+  outHumi = (buffer[0]<<8) | buffer[1];
+  valueHumi = 125.0*outHumi/65536 - 6;
+  return valueHumi;
+}
+
+void CO2_USART_Initial(int CO2_baud)
+{
+  Serial2.begin(CO2_baud);
+}
+int CO2_USART_GetValue(void)
+{
+  unsigned char CO2_BUF[7] = "";
+  unsigned int H_Bits=0,L_Bits=0,H_Bits_H=0,H_Bits_L=0,L_Bits_H=0,L_Bits_L=0;
+  unsigned int CO2_PPM = 0;
+  Serial2.write(CMD_Array,8);
+  delayMicroseconds(5000);
+  while(Serial2.available() < 7) {;}
+  while(Serial2.available() != 0){Serial2.readBytes(CO2_BUF,7);}
+  
+  H_Bits = CO2_BUF[3];
+  L_Bits = CO2_BUF[4];
+  
+  H_Bits_H = H_Bits>>4;
+  H_Bits_L = H_Bits&0x0F;
+  L_Bits_H = L_Bits>>4;
+  L_Bits_L = L_Bits&0x0F;
+  CO2_PPM = H_Bits_H*4096 + H_Bits_L*256 + L_Bits_H*16 + L_Bits_L;
+  return CO2_PPM;
+}
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  CO2_USART_Initial(9600);
+  DelayPin_initial(Delay_PinList,Delay_Device);
+  Wire.begin();
   
   pinMode(dirPin,OUTPUT);
   pinMode(stepperPin,OUTPUT);
@@ -192,8 +276,6 @@ void setup() {
   pinMode(Pin_BN,OUTPUT);
   pinMode(Y_Trigger,INPUT);
 
-  pinMode(CO2_Control_Pin,OUTPUT);
-
   gravityTds.setPin(EC_SensorPin);
   gravityTds.setAref(5.0);  //reference voltage on ADC, default 5.0V on Arduino UNO
   gravityTds.setAdcRange(1024);  //1024 for 10bit ADC;4096 for 12bit ADC
@@ -202,27 +284,6 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  /*
-  Serial.print("CO2-CMD-Send:");
-  for(CO2_Byte_Counter=0; CO2_Byte_Counter < CO2_DATA_Len; CO2_Byte_Counter++){
-    Serial.print(char(CO2_CMD[CO2_Byte_Counter]));
-  }
-  Serial.println("\n");
-  delay(1000); delay(1000);  delay(1000);
-  CO2_Byte_Counter = 0;
-  while(Serial.available() < CO2_DATA_Len-1) { Serial.println("Waitting for data...");  delay(500); }
-  while(Serial.available() > 0) {
-      Serial.print("Getting the CO2 DATA:");
-      Serial.println(char(CO2_Byte_Counter+48));
-      Serial.readBytes(Buffers+CO2_Byte_Counter,1);
-      CO2_Byte_Counter++;
-   }
-   Buffers[CO2_DATA_Len] = '\0';
-   Serial.print("CO2-Value:");
-   Serial.println(Buffers);
-   delay(1000);  delay(1000);
-   */
-
   while(Serial.available() != 0){
       Serial.readBytes(Buffers,CMD_DATA_Len);
       Update_Flag = 1;
@@ -238,8 +299,24 @@ void loop() {
     if(Buffers[0] == 'S') {Stop_Motor(); Serial.println("OK-S");}
     if(Buffers[0] == 'G') {digitalWrite(CO2_Control_Pin,LOW); Serial.println("OK-GCO2 ON");}
     if(Buffers[0] == 'H') {digitalWrite(CO2_Control_Pin,HIGH); Serial.println("OK-HCO2 OFF");}
-    if(Buffers[0] == 'I') {Current_PH = Get_PH_Val(PH_SensorPin); Serial.print(" PH:");Serial.print(Current_PH,2); Serial.println("OK-IPH");}
-    if(Buffers[0] == 'J') {Current_EC = Get_EC_Val(); Serial.print(" EC:");Serial.print(Current_EC,2);Serial.println("OK-JTDS");}
+    if(Buffers[0] == 'I') {Current_PH = Get_PH_Val(PH_SensorPin); Serial.print(" PH:");Serial.print(Current_PH,2); Serial.println("OK-I");}
+    if(Buffers[0] == 'J') {Current_EC = Get_EC_Val(); Serial.print(" EC:");Serial.print(Current_EC,2);Serial.println("OK-J");}
+    if(Buffers[0] == 'K') {Current_CO = CO2_USART_GetValue();Serial.print(" CO2:");Serial.print(Current_CO,DEC);Serial.println("OK-K");}
+    
+    // whiteLight_Pin,GorwLight1_Pin,GorwLight2_Pin,DosingPump1_Pin,DosingPump2_Pin,DosingPump3_Pin;
+    if(Buffers[0] == 'L') {DelayPin_Control(whiteLight_Pin,1);Serial.println("OK-L");}
+    if(Buffers[0] == 'M') {DelayPin_Control(whiteLight_Pin,0);Serial.println("OK-M");}
+    if(Buffers[0] == 'N') {DelayPin_Control(GorwLight1_Pin,1);Serial.println("OK-N");}
+    if(Buffers[0] == 'O') {DelayPin_Control(GorwLight1_Pin,0);Serial.println("OK-O");}
+    if(Buffers[0] == 'P') {DelayPin_Control(GorwLight2_Pin,1);Serial.println("OK-P");}
+    if(Buffers[0] == 'Q') {DelayPin_Control(GorwLight2_Pin,0);Serial.println("OK-Q");}
+    
+    if(Buffers[0] == 'R') {DelayPin_Control(DosingPump1_Pin,1);Serial.println("OK-R");}
+    if(Buffers[0] == 'T') {DelayPin_Control(DosingPump1_Pin,0);Serial.println("OK-T");}
+    if(Buffers[0] == 'U') {DelayPin_Control(DosingPump2_Pin,1);Serial.println("OK-U");}
+    if(Buffers[0] == 'V') {DelayPin_Control(DosingPump2_Pin,0);Serial.println("OK-V");}
+    if(Buffers[0] == 'W') {DelayPin_Control(DosingPump3_Pin,1);Serial.println("OK-W");}
+    if(Buffers[0] == 'X') {DelayPin_Control(DosingPump3_Pin,0);Serial.println("OK-X");}
     Update_Flag = 0;
   }
 }
