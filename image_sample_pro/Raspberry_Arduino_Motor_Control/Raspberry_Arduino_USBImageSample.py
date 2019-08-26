@@ -108,7 +108,7 @@ def Get_time_str(separator,struct=''):
         return str(time_struct_val.tm_year) + separator + str(time_struct_val.tm_mon) + separator + str(time_struct_val.tm_mday)+ separator + str(time_struct_val.tm_hour) + separator + str(time_struct_val.tm_min) + separator + str(time_struct_val.tm_sec) 
     return str(struct.tm_year) + separator + str(struct.tm_mon) + separator + str(struct.tm_mday)+ separator + str(struct.tm_hour) + separator + str(struct.tm_min) + separator + str(struct.tm_sec)
 
-Journal_log(log="\################################## System Start:" + Get_time_str(':',Start_Date) + " \###########################################\n")
+Journal_log(log="################################## System Start:" + Get_time_str(':',Start_Date) + "###########################################\n")
 
 def ASK_Slave(serial,cmd_data):
     global recv_data,recv_n
@@ -174,6 +174,7 @@ def ASK_Slave(serial,cmd_data):
                 Journal_log(log="System died at: "+ Get_time_str(':') +'.\n')
                 os.system('sync')
                 time.sleep(1)
+                print 'sudo shutdown -r now'
                 os.system('sudo shutdown -r now')
 
 def Test_Motor(serial):
@@ -277,8 +278,8 @@ while True:
                 CO2_Status = 'H'
                 ser.close()
         min_update = 1
-        pre_min = date.tm_min
-    if date.tm_hour % 1 == 0 and date.tm_min % 1 == 0 and min_update and date.tm_hour >= 8 and date.tm_hour < 23:
+        pre_min = date.tm_min # >=8 <19
+    if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update and date.tm_hour >= 7 and date.tm_hour < 19:
         time.sleep(2) # Wait for Serial been closed.
         ser = Serial_Get()
         Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
