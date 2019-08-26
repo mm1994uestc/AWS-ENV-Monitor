@@ -294,29 +294,29 @@ void loop() {
     if(Buffers[0] == 'B') {current_steps = int(float(Buffers[1])/x_mm_pp); x_step(0,current_steps);  Serial.println("OK-B");} // 向左前进
     if(Buffers[0] == 'C') {current_steps = int(float(Buffers[1])/y_mm_pp); y_step(1,current_steps);  Serial.println("OK-C");} // 向下前进
     if(Buffers[0] == 'D') {current_steps = int(float(Buffers[1])/y_mm_pp); y_step(0,current_steps);  Serial.println("OK-D");} // 向上后退
-    if(Buffers[0] == 'E') {x_initial();  Serial.println("OK-E");}
-    if(Buffers[0] == 'F') {y_initial();  Serial.println("OK-F");}
-    if(Buffers[0] == 'S') {Stop_Motor(); Serial.println("OK-S");}
-    if(Buffers[0] == 'G') {digitalWrite(CO2_Control_Pin,LOW); Serial.println("OK-GCO2 ON");}
-    if(Buffers[0] == 'H') {digitalWrite(CO2_Control_Pin,HIGH); Serial.println("OK-HCO2 OFF");}
-    if(Buffers[0] == 'I') {Current_PH = Get_PH_Val(PH_SensorPin); Serial.print(" PH:");Serial.print(Current_PH,2); Serial.println("OK-I");}
-    if(Buffers[0] == 'J') {Current_EC = Get_EC_Val(); Serial.print(" EC:");Serial.print(Current_EC,2);Serial.println("OK-J");}
-    if(Buffers[0] == 'K') {Current_CO = CO2_USART_GetValue();Serial.print(" CO2:");Serial.print(Current_CO,DEC);Serial.println("OK-K");}
+    if(Buffers[0] == 'E') {x_initial();  delay(300); Serial.println("OK-E");}
+    if(Buffers[0] == 'F') {y_initial();  delay(300); Serial.println("OK-F");}
+    if(Buffers[0] == 'S') {Stop_Motor(); delay(300); Serial.println("OK-S");}
+    if(Buffers[0] == 'G') {digitalWrite(CO2_Control_Pin,LOW); delay(1000); Serial.println("OK-GCO2 ON");}
+    if(Buffers[0] == 'H') {digitalWrite(CO2_Control_Pin,HIGH); delay(1000); Serial.println("OK-HCO2 OFF");}
+    if(Buffers[0] == 'I') {Current_PH = Get_PH_Val(PH_SensorPin); delay(1000); Serial.print(" PH:");Serial.print(Current_PH,2); Serial.println("OK-I");}
+    if(Buffers[0] == 'J') {Current_EC = Get_EC_Val(); delay(1000); Serial.print(" EC:");Serial.print(Current_EC,2);Serial.println("OK-J");}
+    if(Buffers[0] == 'K') {Current_CO = CO2_USART_GetValue(); delay(1000); Serial.print(" CO2:");Serial.print(Current_CO,DEC);Serial.println("OK-K");}
     
     // whiteLight_Pin,GorwLight1_Pin,GorwLight2_Pin,DosingPump1_Pin,DosingPump2_Pin,DosingPump3_Pin;
-    if(Buffers[0] == 'L') {DelayPin_Control(whiteLight_Pin,1);Serial.println("OK-L");}
-    if(Buffers[0] == 'M') {DelayPin_Control(whiteLight_Pin,0);Serial.println("OK-M");}
-    if(Buffers[0] == 'N') {DelayPin_Control(GorwLight1_Pin,1);Serial.println("OK-N");}
-    if(Buffers[0] == 'O') {DelayPin_Control(GorwLight1_Pin,0);Serial.println("OK-O");}
-    if(Buffers[0] == 'P') {DelayPin_Control(GorwLight2_Pin,1);Serial.println("OK-P");}
-    if(Buffers[0] == 'Q') {DelayPin_Control(GorwLight2_Pin,0);Serial.println("OK-Q");}
+    if(Buffers[0] == 'L') {DelayPin_Control(whiteLight_Pin,1);delay(1500); Serial.println("OK-L");}
+    if(Buffers[0] == 'M') {DelayPin_Control(whiteLight_Pin,0);delay(1500); Serial.println("OK-M");}
+    if(Buffers[0] == 'N') {DelayPin_Control(GorwLight1_Pin,1);delay(1500); Serial.println("OK-N");}
+    if(Buffers[0] == 'O') {DelayPin_Control(GorwLight1_Pin,0);delay(1500); Serial.println("OK-O");}
+    if(Buffers[0] == 'P') {DelayPin_Control(GorwLight2_Pin,1);delay(1500); Serial.println("OK-P");}
+    if(Buffers[0] == 'Q') {DelayPin_Control(GorwLight2_Pin,0);delay(1500); Serial.println("OK-Q");}
     
-    if(Buffers[0] == 'R') {DelayPin_Control(DosingPump1_Pin,1);Serial.println("OK-R");}
-    if(Buffers[0] == 'T') {DelayPin_Control(DosingPump1_Pin,0);Serial.println("OK-T");}
-    if(Buffers[0] == 'U') {DelayPin_Control(DosingPump2_Pin,1);Serial.println("OK-U");}
-    if(Buffers[0] == 'V') {DelayPin_Control(DosingPump2_Pin,0);Serial.println("OK-V");}
-    if(Buffers[0] == 'W') {DelayPin_Control(DosingPump3_Pin,1);Serial.println("OK-W");}
-    if(Buffers[0] == 'X') {DelayPin_Control(DosingPump3_Pin,0);Serial.println("OK-X");}
+    if(Buffers[0] == 'R') {DelayPin_Control(DosingPump1_Pin,1);delay(1500); Serial.println("OK-R");}
+    if(Buffers[0] == 'T') {DelayPin_Control(DosingPump1_Pin,0);delay(1500); Serial.println("OK-T");}
+    if(Buffers[0] == 'U') {DelayPin_Control(DosingPump2_Pin,1);delay(1500); Serial.println("OK-U");}
+    if(Buffers[0] == 'V') {DelayPin_Control(DosingPump2_Pin,0);delay(1500); Serial.println("OK-V");}
+    if(Buffers[0] == 'W') {DelayPin_Control(DosingPump3_Pin,1);delay(1500); Serial.println("OK-W");}
+    if(Buffers[0] == 'X') {DelayPin_Control(DosingPump3_Pin,0);delay(1500); Serial.println("OK-X");}
     Update_Flag = 0;
   }
 }
