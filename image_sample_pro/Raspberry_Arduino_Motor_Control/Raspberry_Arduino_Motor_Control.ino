@@ -88,6 +88,7 @@ void y_step(boolean dir,int steps)
       digitalWrite(Pin_AP,LOW); digitalWrite(Pin_AN,HIGH);
       digitalWrite(Pin_BP,LOW);  digitalWrite(Pin_BN,HIGH);
       delayMicroseconds(Y_Speed_us);
+      y_abs_position -= 1;
     }
   }
   if(dir==1)
@@ -105,12 +106,11 @@ void y_step(boolean dir,int steps)
       digitalWrite(Pin_AP,HIGH); digitalWrite(Pin_AN,LOW);
       digitalWrite(Pin_BP,LOW);  digitalWrite(Pin_BN,HIGH);
       delayMicroseconds(Y_Speed_us);
+      y_abs_position += 1;
     }
   }
   digitalWrite(Pin_AP,0); digitalWrite(Pin_AN,0); // Close the micro motor
   digitalWrite(Pin_BP,0); digitalWrite(Pin_BN,0);
-  if(dir == 0) y_abs_position -= steps;
-  if(dir == 1) y_abs_position += steps;
 }
 
 void x_initial(void)
