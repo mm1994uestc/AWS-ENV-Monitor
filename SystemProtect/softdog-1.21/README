@@ -1,0 +1,132 @@
+Softdog 1.21
+(c) Christophe Dupre 1998,1999
+---------------------------
+
+This is a software watchdog driver based on the driver that Alan Cox
+included as part of the Linux distribution but modified so that it runs
+more like a daemon. This version is heavily based on the work of Jamey
+Graham, who released version 1.0 in 1996.
+
+The software watchdog tries to "catch" computer lock-ups and will try
+to reboot the machine in case one occurs. It also does some a few simple tests
+to catch some events (currently the inability to fork and open a file) and 
+reboot the machine if they remain so for too long (see "Usage" bellow).
+
+Bug reports, comments and patches are welcome. Please send them to my
+primary email address: duprec@risq.qc.ca.
+
+
+
+INSTALLATION
+------------
+ 
+ For most of you, simply do a 'make install'.  This will compile the binary and 
+ install it in /sbin as well as install the man page in /usr/man/man8. 
+ It will also create the character device /dev/watchdog with major# 10 and 
+ minor# 130.  
+  
+ You can also install components seperately:
+  installbin - installs the binary in /sbin
+  installman - installs the man page in /usr/man/man8
+  installdev - creates the device /dev/watchdog
+
+ To start the timer at bootup, simply add the following to
+ /etc/rc.d/rc.local:  
+ 
+  # Start the software watchdog
+  echo -n "Starting softdog driver.."
+  /sbin/softdog
+  echo "done"
+ 
+ Of course, how to add a daemon depends on your distribution. 
+  
+Please see the file watchdog.txt in the Documentation directory in the linux
+source distribution for additional information on the watchdog system.
+
+
+USAGE
+-----
+
+Invoking softdog is very simple. Just add the following line in one of your
+initialisationscripts (such as /etc/rc.d/rc.local)
+
+		/usr/sbin/softdog
+
+You may also use the following command line switches:
+	-v 	display version information
+	-h	display usage information
+	-k	kill running softdog process
+
+Softdog will monitor your system and try to reboot it if it becomes
+unable to run. Note that you MUST have installed the kernel software watchdog
+in order for this software to work. When in your linux kernel configuration
+utility, go to the "Character devices" section, say "Yes" to "Watchdog Timer
+Support", then "Yes" to "Software Watchdog".
+
+Please note that, although this software was built to support the software
+watchdog as implemented in Linux 1.3.50 onward, it should also work 
+with hardware watchdog products which are supported by the Linux 
+kernel through the /dev/watchdog interface (Feedback on this topic would
+be very appreciated).
+
+
+WATCHDOG AS A MODULE
+--------------------
+
+Even if the kernel software watchdog can be compiled as a module, I don't
+think it a good idea to do so. The reasons are :
+
+   - Modules are most useful to save memory on low-memory systems, where 
+     scarcely used features don't need to be kept in memory at all time.
+     This is not the case of the Watchdog, since it needs to keep running to
+     be able to monitor the computer.
+   - Modules are also interesting to allow easy driver upgrade, so that the 
+     computer do not need to be rebooted to upgrade or add a driver. This is
+     not the case since the software watchdog is not modified on a regular 
+     basis.
+   - Since the software watchdog is so small, loading it as a module would
+     waste exactly 1772 bytes of memory (calculation based on linux 2.0.32 on
+     a Pentium - your mileage may vary) compared with the watchdog compiled
+     in the kernel.
+
+Upon execution, softdog checks if the software watchdog is compiled in the
+kernel. If it is not, then a warning message is printed on-screen, and the
+execution continues, softdog trusting kerneld to load the module when needed.
+If kerneld is not installed or properly configured, softdog will print an
+error (stating that either kerneld is not running, not properly configured,
+or softdog is already running) and will exit.
+
+In order for kerneld to properly load the module, you need to have the following 
+line in /etc/modules.conf (module utilities configuration file):
+
+		alias char-major-10-130 softdog
+
+
+HISTORY
+-------
+
+Version 1.21
+Released 01/105/1999
+	* Fixed the module check routine for Linux 2.1.x (cosmetic)
+	* Fixed Help/Version information (cosmetic)
+
+Version 1.2
+Released 05/11/1998
+	* Fixed softdog not working if the kernel device is compiled as a
+	  module.
+	* Fixed error if the special file /dev/watchdog did not exist.
+	* This release has been tested on most 2.0.x kernels. I'd like people 
+	  using 2.1.x to test this and give me feedback, as I haven't gotten
+	  around to upgrading yet (Real Soon Now :-)  )
+	
+	
+Version 1.1
+Released 02/07/1997
+	* Maintenance took up by Christophe Dupre (duprec@risq.qc.ca)
+	* Added some system check: ability to fork() and to open() a file.
+	* Added some initialisation to better run as a daemon
+	
+	
+Version 1.0
+	This version was released by Jamey Graham in 1996, based on some code
+	by Alan Cox released with the kernel software watchdog.

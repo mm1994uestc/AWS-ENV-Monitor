@@ -1,0 +1,70 @@
+.\" Softdog Manual Page
+.\" 
+.\" (c) Christophe Dupre  1998
+.\" Softdog 1.21
+.\"
+.Dd February 7, 1997
+.Dt SOFTDOG 8
+.Os Linux 2.0
+.Sh NAME
+.Nm softdog
+.Nd software watchdog timer
+.Sh SYNOPSIS
+.Nm softdog
+.Op Fl khv
+.Op Fl Fl kill
+.Op Fl Fl help
+.Op Fl Fl version
+.Sh DESCRIPTION
+.Nm Softdog
+is a software driver for use with the software watchdog available in the
+Linux kernel (post 1.3.50).  
+.Nm Softdog 
+opens the file 
+.Ar /dev/watchdog
+(MAJOR 10, MINOR 130) and attempts to write
+to it every 20 seconds.  If 
+.Nm softdog
+fails to write to 
+.Ar /dev/watchdog
+within 60 seconds, the 
+.Nm watchdog
+kernel timer will assume (probably correctly) that the machine has locked up 
+and will attemp to do a hard reboot (init shutdown procedures are ignored).
+Depending on the state of the machine and interrupts, this reboot may fail
+or succeed.  
+.Nm Softdog
+will also hard reboot the machine if it finds that the process table or
+the file descriptors table stays full for more than 40 seconds.  The software 
+.Nm watchdog
+should be considered the "baby brother" of the failproof hardware watchdog.
+.Bl -tag -width Ds
+.It Fl k Fl Fl kill
+Kill the
+.Nm softdog
+daemon process and close 
+.Ar /dev/watchdog.
+Depending on kernel configuration, closing 
+.Ar /dev/watchdog
+may shutdown the
+.Nm watchdog
+kernel timer.  If the kernel is configured to ignore closing 
+.Ar /dev/watchdog,
+killing the 
+.Nm softdog
+driver will probably result in system hard reboot.
+.It Fl h Fl Fl help
+Display help screen.
+.It Fl v Fl Fl version
+Display version information.
+.Sh BUGS
+Hopefully none.  Send bug reports to duprec@risq.qc.ca.
+.Sh AUTHORS
+Christophe Dupre  (duprec@risq.qc.ca)
+.Pp
+Jamey Graham  (jgraham@scranton.com)
+.Pp
+Alan Cox  (alan@lxorguk.ukuu.org.uk)
+.Sh SEE ALSO
+.Xr /usr/src/linux/Documentation/watchdog.txt
+
