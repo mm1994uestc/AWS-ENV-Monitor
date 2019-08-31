@@ -14,6 +14,9 @@ const int EC_SensorPin = A15;
 GravityTDS gravityTds;
 float temperature = 25,Current_EC = 0;
 
+float Humi = 0.0;
+float Temp = 0.0;
+
 #define x_mm_pp 0.0711
 #define y_mm_pp 0.0625// 1:100=0.0625 1:50=0.125
 
@@ -186,7 +189,33 @@ float Get_PH_Val(const int PH_SensorPin)
   return phValue;
 }
 
+void EC_Initial(void)
+{
+  // analog pin does not need to set the mode.
+}
 float Get_EC_Val(void)
+{
+  unsigned char test_count=0;
+  unsigned int TotalsensorValue=0,average_EC=0;
+  float ECcurrent = 0.0;
+  for(test_count=0;test_count<10;test_count++){
+    TotalsensorValue = TotalsensorValue + analogRead(EC_SensorPin);
+    delay(100);
+  }
+  average_EC = (float)(TotalsensorValue)/2.048;
+  if(average_EC<=448) {ECcurrent=6.84*average_EC-64.32;} //1ms/cm<EC<=3ms/cm
+  else if(average_EC<=1457) {ECcurrent=6.98*average_EC-127;} //3ms/cm<EC<=10ms/cm
+  else {ECcurrent=5.3*average_EC+2278;} //10ms/cm<EC<20ms/cm
+  return ECcurrent/1000.0; // Unit:ms/cm
+}
+void TDS_Initial(void)
+{
+  gravityTds.setPin(EC_SensorPin);
+  gravityTds.setAref(5.0);  //reference voltage on ADC, default 5.0V on Arduino UNO
+  gravityTds.setAdcRange(1024);  //1024 for 10bit ADC;4096 for 12bit ADC
+  gravityTds.begin();  //initialization
+}
+float Get_TDS_Val(void)
 {
   gravityTds.setTemperature(temperature);  // set the temperature and execute temperature compensation
   gravityTds.update();  //sample and calculate 
@@ -275,11 +304,8 @@ void setup() {
   pinMode(Pin_BP,OUTPUT);
   pinMode(Pin_BN,OUTPUT);
   pinMode(Y_Trigger,INPUT);
-
-  gravityTds.setPin(EC_SensorPin);
-  gravityTds.setAref(5.0);  //reference voltage on ADC, default 5.0V on Arduino UNO
-  gravityTds.setAdcRange(1024);  //1024 for 10bit ADC;4096 for 12bit ADC
-  gravityTds.begin();  //initialization
+  
+  // TDS_Initial();
 }
 
 void loop() {
@@ -317,6 +343,8 @@ void loop() {
     if(Buffers[0] == 'V') {DelayPin_Control(DosingPump2_Pin,0);delay(1500); Serial.println("OK-V");}
     if(Buffers[0] == 'W') {DelayPin_Control(DosingPump3_Pin,1);delay(1500); Serial.println("OK-W");}
     if(Buffers[0] == 'X') {DelayPin_Control(DosingPump3_Pin,0);delay(1500); Serial.println("OK-X");}
+    if(Buffers[0] == 'Y') {Humi = SI7021_Get_Humi();delay(1500); Serial.print(Humi,2);Serial.println("OK-Y");}
+    if(Buffers[0] == 'Z') {Temp = SI7021_Get_Temp();delay(1500); Serial.print(Temp,2);Serial.println("OK-Z");}
     Update_Flag = 0;
   }
 }
