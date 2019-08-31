@@ -193,18 +193,26 @@ def Test_Motor(serial):
 
 def Motor_Control(serial,CMD_IN,distance):
     global Motor_CMD
+    ser_state = 1
+    CMD_Res = "Error"
     CMD_Send = CMD_IN + chr(distance) + '\0'
     print CMD_Send
-    if 'S' == CMD_Send[0]:
-        serial.write(Motor_CMD['stop'])
-        ASK_Slave(serial,Motor_CMD['stop'])
-        time.sleep(1.5)
-    else:
-        serial.write(CMD_Send)
-        CMD_Res = ASK_Slave(serial,CMD_Send)
-        time.sleep(1)
+    try:
+        if 'S' == CMD_Send[0]:
+            serial.write(Motor_CMD['stop'])
+            ASK_Slave(serial,Motor_CMD['stop'])
+            time.sleep(1.5)
+        else:
+            serial.write(CMD_Send)
+            CMD_Res = ASK_Slave(serial,CMD_Send)
+            time.sleep(1)
+            pass
+    except:
+            print "ser is wrong!"
+            Journal_log(log=Get_time_str(':')+"Motor_Control(ser," + CMD_Send + ") Func Failed\n")
+            ser_state = 0
     time.sleep(1)
-    return CMD_Res
+    return CMD_Res,ser_state
 
 def Serial_Get():
     USB_dev = ''
@@ -221,6 +229,7 @@ def Serial_Get():
         if find_count >= 30:
             Journal_log(log=Get_time_str(':')+'-Error:Arduino Device Not Founded.Restart Arduino.\n')
             print 'Restart the Arduino Power supply by raspberry\'s GPIO Directly.'
+            find_count = 0
         time.sleep(1)
     serial_dev = '/dev/' +  USB_dev
     Serial_Status = 'BUSY'
@@ -243,6 +252,7 @@ def Serial_Get():
 print 'System Start Monitor...'
 CO2_Status = '?'
 RPi_CO2 = False
+ser = Serial_Get()
 while True:
     date = time.localtime(time.time())
     if pre_min != date.tm_min:
@@ -252,34 +262,42 @@ while True:
             if RPi_CO2:
                 CO2_PPM = CO2_USART_GetValue(CO2_ser,CO2_CMD) # Get the CO2-Values form Raspiberry<--->CO2_Sensor.
             else:
-                ser = Serial_Get();
-                CO2_STR = Motor_Control(ser,'K',0); # K CO2:493OK-KCO2
-                ser.close()
-                CO2_Start_Index = CO2_STR.find(':') + 1;
-                CO2_End_Index = CO2_STR.find('OK');
+                #ser = Serial_Get()
+                CMD_Res = Motor_Control(ser,'K',0) # K CO2:493OK-KCO2
+                #ser.close()
+                if CMD_Res[1] == 0:
+                    ser.close()
+                    time.sleep(2)
+                    ser = Serial_Get()
+                    CO2_STR = "CO2:1500OK-KCO2" # the CO2 Value should bigger than 1200.
+                else:
+                    CO2_STR = CMD_Res[0]
+                CO2_Start_Index = CO2_STR.find(':') + 1
+                CO2_End_Index = CO2_STR.find('OK')
                 CO2_PPM = int(CO2_STR[CO2_Start_Index:CO2_End_Index])
             print Get_time_str('-',date),':',CO2_PPM,'ppm'
             if CO2_PPM < 1000: # Judge the CO2 ppm
                 if CO2_Status != 'G':
-                    ser = Serial_Get()
-                    Motor_Control(ser,'G',0); # Control the CO2-Delay status:ON
-                    ser.close()
+                    #ser = Serial_Get()
+                    Motor_Control(ser,'G',0) # Control the CO2-Delay status:ON
+                    #ser.close()
                     CO2_Status = 'G'
             elif CO2_PPM > 1200:
                 if CO2_Status != 'H':
-                    ser = Serial_Get()
-                    Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
+                    #ser = Serial_Get()
+                    Motor_Control(ser,'H',0) # Control the CO2-Delay status:OFF
                     CO2_Status = 'H'
-                    ser.close()
+                    #ser.close()
         else:
             if CO2_Status != 'H':
-                ser = Serial_Get()
-                Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
+                #ser = Serial_Get()
+                Motor_Control(ser,'H',0) # Control the CO2-Delay status:OFF
                 CO2_Status = 'H'
-                ser.close()
+                #ser.close()
         min_update = 1
         pre_min = date.tm_min # >=8 <19
     if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update and date.tm_hour >= 7 and date.tm_hour < 19:
+        ser.close() # Add line
         time.sleep(2) # Wait for Serial been closed.
         ser = Serial_Get()
         Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
@@ -360,7 +378,7 @@ while True:
         Motor_Control(ser,'M',0)
         Motor_Control(ser,'O',0)
         Motor_Control(ser,'Q',0)
-        ser.close()
+        # ser.close()
         print "Serial been Closed now."
         x_axis_lable = 0
         y_axis_lable = 0
