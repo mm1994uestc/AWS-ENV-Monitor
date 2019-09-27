@@ -5,6 +5,12 @@
   align-items: center;
 }
 
+.main {
+  height: 619px;
+  width: 300px;
+  text-align: center;
+}
+
 .userinfo-avatar {
   width: 100rpx;
   height: 100rpx;

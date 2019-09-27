@@ -1,0 +1,312 @@
+.page-structure {
+	height: 901px;
+	width: 1440px;
+	background-color: #FFFFFF;
+	margin-left: auto;
+	margin-right: auto;
+	border-radius: 5px;
+	border: 0px solid black;
+	box-shadow: 0 6px 13px 0 rgba(21,33,56,0.53);
+}
+
+.top-navbar {
+	height: 67px;
+	width: 1440px;
+	margin-top: 3px;
+	border-bottom: 1px solid black;
+}
+
+.nexgen-logo {
+	height: 65px;
+	width: 198px;
+	margin: auto;
+	left: 0;
+}
+
+.menu-button {
+	height: 66px;
+	width: 66px;
+	position: absolute;
+	background-color:transparent;
+	border: 0px;
+	margin-left: 41px;
+}
+
+.storage-menu {
+	height: 16px;
+	width: 195px;
+	position: absolute;
+	left: 933px;
+	top: 10px;
+	background-color:transparent;
+	border: 0px;
+}
+
+#storage-slot {
+	height: 9px;
+	width: 167px;
+	border-radius: 5px;
+	background-color: #20293C;
+	position: absolute;
+	margin-left: 961px;
+	top: 35px;
+}
+
+#storage-bar {
+	height: 8px;
+	width: 115px;
+	border-radius: 5px;
+	background-color: #7BD570;
+	position: absolute;
+	margin: 0 auto;
+}
+
+.base-info {
+	height: 20px;
+	width: 110px;
+	position: absolute;
+	margin-left: 1187px;
+	top: 26px;
+}
+
+#help-button {
+	height:26px;
+	width:33px;
+	position: absolute;
+	margin-left: 0px;
+	overflow:hidden;
+	background-color:transparent;
+	border: 0px;
+}
+
+#mesg-button {
+	height:26px;
+	width:33px;
+	position: absolute;
+	margin-left: 40px;
+	overflow:hidden;
+	background-color:transparent;
+	border: 0px;
+}
+
+#noti-button {
+	height:26px;
+	width:33px;
+	position: absolute;
+	margin-left: 80px;
+	overflow:hidden;
+	background-color:transparent;
+	border: 0px;
+}
+
+.user-name {
+	height: 70px;
+	width: 70px;
+	position: absolute;
+	left: 1410px;
+	top: 25px;
+	float:left;
+}
+
+.username {
+	height: 14px;
+	width: 59px;
+	color: #CFD7DB;
+	font-family: "Open Sans";
+	font-size: 12px;
+	letter-spacing: NaNpx;
+	line-height: 14px;
+	text-align: right;
+	float: left;
+}
+
+.left-hand-navigation {
+	height: 621px;
+	width: 193px;
+	position: absolute;
+	border-radius: 3px;
+	margin-top: 20px;
+	box-shadow: 0 6px 13px 0 rgba(21,33,56,0.53);
+}
+
+.profile-info {
+	height: 118px;
+	width: 102.5px;
+	position: absolute;
+	left: 50px;
+	top: 35px;
+}
+
+.device-name {
+	height: 20px;
+	width: 48px;
+	color: #869AAC;
+	font-family: Arial;
+	font-size: 17px;
+	line-height: 20px;
+	text-align: center;
+	position: absolute;
+	margin-top: 98px;
+	left: 16px;
+}
+
+.selector-base {
+	height: 47.15px;
+	width: 9px;
+	background-color: #7BD570;
+	position: absolute;
+	margin-left: -8px;
+}
+
+.selector-home {
+	height: 47.15px;
+	width: 182.12px;
+	position: absolute;
+	margin-top: 261.92px;
+	margin-left: 0px;
+ 	background-color:transparent;
+	border: 0px;
+}
+
+.rectangle-home {
+	height: 47px;
+	width: 175.23px;
+	opacity: 0.2;
+	border-radius: 0 8px 8px 0;
+	background-color: #131A27;
+}
+
+.selector-oval {
+	height: 47.15px;
+	width: 182.12px;
+	position: absolute;
+	margin-top: 312.92px;
+	margin-left: 0px;
+ 	background-color:transparent;
+	border: 0px;
+}
+
+.selector-data {
+	height: 47.15px;
+	width: 182.12px;
+	position: absolute;
+	margin-top: 363.92px;
+	margin-left: 0px;
+ 	background-color:transparent;
+	border: 0px;
+}
+
+.selector-graph {
+	height: 47.15px;
+	width: 182.12px;
+	position: absolute;
+	margin-top: 414.92px;
+	margin-left: 0px;
+ 	background-color:transparent;
+	border: 0px;
+}
+
+
+.selector-back {
+	height: 47.15px;
+	width: 182.12px;
+	position: absolute;
+	margin-top: 465.92px;
+	margin-left: 0px;
+ 	background-color:transparent;
+	border: 0px;
+}
+
+.selector-set {
+	height: 47.15px;
+	width: 182.12px;
+	position: absolute;
+	margin-top: 516.92px;
+	margin-left: 0px;
+ 	background-color:transparent;
+	border: 0px;
+}
+
+.main-content {
+	height: 619px;
+	width: 1141.45px;
+	position: absolute;
+	margin-left: 241px;
+	margin-top: 20px;
+}
+
+.camera {
+	height: 426px;
+	width: 704px;
+	border-radius: 5px;
+	position: absolute;
+	margin-top:35px;
+	margin-left: 0px;
+	background-color: #7BD570;
+}
+
+.camera-title {
+	height: 34px;
+	width: 33px;
+	color: #FFF;
+	font-family: "Heiti SC";
+	font-size: 17px;
+	font-weight: 300;
+	line-height: 17px;
+	position: absolute;
+	margin-left: 8px;
+	margin-top:8px;
+}
+
+#capture {
+	height: 377px;
+	width: 688px;
+	position: absolute;
+	margin-left: 8px;
+	margin-top: 33px;
+	border-radius: 3px;
+	border: 2px solid red;
+}
+
+.consumption-by-room {
+  height: 208px;
+  width: 420px;
+  position: absolute;
+  margin-left: 700px;
+  margin-top: 28px;
+}
+
+.consumption-by-day {
+  height: 208px;
+  width: 200px;
+  position: absolute;
+  margin-left: 700px;
+  margin-top: 246px;
+}
+
+.device-limit {
+  height: 208px;
+  width: 200px;
+  position: absolute;
+  margin-left: 918px;
+  margin-top: 246px;
+}
+
+.status-by-unit {
+  height: 148px;
+  width: 1141px;
+  position: absolute;
+  margin-left: -12px;
+  margin-top: 467px;
+  position: absolute;
+}
+
+.bottom-mask {
+  height: 148px;
+  width: 1141px;
+  
+  
+  position: absolute;
+  margin-top: 660px;
+  margin-left: 243px;
+}

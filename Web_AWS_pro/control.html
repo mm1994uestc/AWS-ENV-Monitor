@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script src="scripts/control.js" async></script>
+		<link href="styles/control.css" rel="stylesheet" type="text/css">
+		<link href="https://fonts.font.im/css?family=Open+Sans" rel="stylesheet" type="text/css">
+		<title>Nexgen.ai</title>
+	</head>
+	<body>
+		<main>
+			<div class="page-structure">
+				<div class="top-navbar">
+					<img src="./images/nexgen_logo.png" class="nexgen-logo">
+					<button class="menu-button" id="menu-list">
+						<svg width="66px" height="66px" version="1.1" xmlns="http://www.w3.org/2000/svg">
+							<line x1="0" y1="0" x2="0" y2="66" style="stroke:rgb(99,99,99); stroke-width:1"/>
+							<line x1="20" y1="20" x2="46" y2="20" style="stroke:rgb(99,99,99); stroke-width:3"/>
+							<line x1="20" y1="30" x2="46" y2="30" style="stroke:rgb(99,99,99); stroke-width:3"/>
+							<line x1="20" y1="40" x2="46" y2="40" style="stroke:rgb(99,99,99); stroke-width:3"/>
+							<line x1="66" y1="0" x2="66" y2="66" style="stroke:rgb(99,99,99); stroke-width:1"/>
+						</svg>
+					</button>
+					<button class="storage-menu">
+						<svg width="66px" height="66px" version="1.1" xmlns="http://www.w3.org/2000/svg">
+							<line x1="20" y1="20" x2="46" y2="20" style="stroke:rgb(99,99,99); stroke-width:3"/>
+							<line x1="20" y1="30" x2="46" y2="30" style="stroke:rgb(99,99,99); stroke-width:3"/>
+							<line x1="20" y1="40" x2="46" y2="40" style="stroke:rgb(99,99,99); stroke-width:3"/>
+						</svg>
+					</button>
+					<div id="storage-slot">
+						<div id="storage-bar"></div>
+					</div>
+					<div class="base-info">
+						<button type="button" id="help-button">
+							<img src="./images/Help.png" style="margin-left:1px;" />
+						</button>
+						<button type="button" id="mesg-button">
+							<img src="./images/Email.png" style="" />
+						</button>
+						<button type="button" id="noti-button">
+							<img src="./images/Notification.png" style="" />
+						</button>
+					</div>
+					<div class="user-name">
+						<svg width="66px" height="66px" version="1.1" xmlns="http://www.w3.org/2000/svg">
+							<circle cx="26" cy="15" r="15" fill="#F59E84"/>
+						</svg>
+					</div>
+				</div>
+				<div class="left-hand-navigation">
+					<div class="profile-info">
+						<img src="./images/Profile image.png" style="margin-top:0px; margin-left:6px;">
+						<text class="device-name">NexgenAI</text>
+					</div>
+					<button class="selector-home">
+						<div class="selector-base"></div>
+						<div class="rectangle-home" id="select-home">
+							<img src="./images/home.png" style="width:15.84px; height:16.58px; left:0px; margin-top:15.18px;" />
+						</div>
+					</button>
+					<button class="selector-oval">
+						<div class="selector-base"></div>
+						<div class="rectangle-home" id="select-oval">
+							<img src="./images/oval.png" style="width:15.84px; height:16.58px; left:0px; margin-top:15.18px;" />
+						</div>
+					</button>
+					<button class="selector-data">
+						<div class="selector-base"></div>
+						<div class="rectangle-home" id="select-data">
+							<img src="./images/data.png" style="width:15.84px; height:16.58px; left:0px; margin-top:15.18px;" />
+						</div>
+					</button>
+					<button class="selector-graph">
+						<div class="selector-base"></div>
+						<div class="rectangle-home" id="select-graph">
+							<img src="./images/graph.png" style="width:15.84px; height:16.58px; left:0px; margin-top:15.18px;" />
+						</div>
+					</button>
+					<button class="selector-back">
+						<div class="selector-base"></div>
+						<div class="rectangle-home" id="select-back">
+							<img src="./images/back.png" style="width:15.84px; height:16.58px; left:0px; margin-top:15.18px;" />
+						</div>
+					</button>
+					<button class="selector-set">
+						<div class="selector-base"></div>
+						<div class="rectangle-home" id="select-set">
+							<img src="./images/set.png" style="width:15.84px; height:16.58px; left:0px; margin-top:15.18px;" />
+						</div>
+					</button>
+				</div>
+				<div class="main-content">
+					<div class="camera">
+						<text class="camera-title"><strong>LIVE</strong></text>
+						<div id="capture">
+							<img src="./images/image.png" style="position:absolute; margin-top:-53px;"/>
+						</div>
+					</div>
+					<div class="consumption-by-room">
+						<img src="./images/Consumption by room.png" />
+					</div>
+					<div class="consumption-by-day">
+						<img src="./images/Consumption by day.png" />
+					</div>
+					<div class="device-limit">
+						<img src="./images/Device Limit.png" />
+					</div>
+					<div class="status-by-unit">
+						<img src="./images/Status by unit.png" />
+					</div>
+				</div>
+				<div class="bottom-mask">
+					<img src="./images/Cards.png"/ style="position=absolute; margin-left:-244px;">
+				</div>
+			</div>
+		</main>
+	</body>
+</html>
