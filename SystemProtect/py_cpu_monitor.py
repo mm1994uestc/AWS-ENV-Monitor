@@ -1,13 +1,13 @@
 import os
 import sys
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 import time
 import psutil
 
 #fans_Control pin initial
 
 heart_pin = 17
-
+'''
 def heart_led_init(PinNum):
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
@@ -25,13 +25,14 @@ def HC595_init(PinNum1,PinNum2,PinNum3):
     GPIO.setup(PinNum1,GPIO.OUT)
     GPIO.setup(PinNum2,GPIO.OUT)
     GPIO.setup(PinNum3,GPIO.OUT)
+'''
 def HC595_SetState(data):
     print(data)
 
 # Return CPU temperature as a character string                                     
 def getCPUtemperature():
     res = os.popen('vcgencmd measure_temp').readline()
-    return float((res.replace("temp=","").replace("'C\n","")))
+    return res.replace("temp=","").replace("'C\n","")
 
 def getCPUstate(interval=1):
     percent = psutil.cpu_percent(interval)
@@ -43,11 +44,18 @@ def getMemorystate():
     return phymem.percent,line
 
 def getAllstate(): # Temprature CPU-Percent Mem-Percent
-    Temp_cpu = getCPUtemperature()
+    # Temp_cpu = getCPUtemperature()
     Perc_cpu = getCPUstate()
     Memo_cpu = getMemorystate()
-    return Temp_cpu,Perc_cpu[0],Memo_cpu[0]
+    return Perc_cpu[0],Memo_cpu[0]
 
+while True:
+    Perc_cpu,Memo_cpu = getAllstate()
+    # print(Temp_cpu,'-',type(Temp_cpu))
+    print(Perc_cpu)
+    print(Memo_cpu)
+    time.sleep(15)
+'''
 def process_heart_status(PinNum): # Need code the watchdog processing!
     Emegency_Flag = {"CPU-Temp":0x01,"CPU-Perc":0x02,"CPU-Memo":0x04}
     Emegency_Sate = 0x00
@@ -75,7 +83,9 @@ def process_heart_status(PinNum): # Need code the watchdog processing!
         
         while blink_count <= limit:
             blink_count += 1
-            heart_led_blink(PinNum,blink_speed)
+            # heart_led_blink(PinNum,blink_speed)
+            print(blink_count)
+            time.sleep(2*blink_speed)
 
 
 
@@ -91,6 +101,7 @@ print("The CPU_percent:",CPU_percent[0])
 print("The Memory_percent:",Mem_State[0],"%")
 print("The CPU Number:",psutil.cpu_count(logical=False))
 
-HC595_init(12,13,14)
-heart_led_init(heart_pin)
+# HC595_init(12,13,14)
+# heart_led_init(heart_pin)
 process_heart_status(heart_pin)
+'''
