@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import RPi.GPIO as GPIO
@@ -5,6 +6,69 @@ import serial
 import time
 import os 
 import cv2
+
+import socket
+import urllib
+import thread
+import threading
+import json
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-+8')
+
+host = '192.168.101.121'
+print(host)
+port = 5000
+
+ENV_Len = 8
+ENV_Status = [0,10000,2,23,43,321,498,54]
+
+def Communicate(info):
+    if info == 'G' or  info == 'Get' or  info == 'GET':
+        threadLock.acquire()
+        ENV_DATA = ''
+        for i in range(ENV_Len):
+            ENV_DATA += str(ENV_Status[i])
+            ENV_DATA += '|'
+        threadLock.release()
+        return ENV_DATA
+    else:
+        return ''
+def Server_Socket(host,port):
+    Socket_status = 'BUSY'
+    while True:
+        while Socket_status == 'BUSY':
+            try:
+                clnt = ''
+                addr = ''
+                Sk = socket.socket()
+                Sk.bind((host, port))
+                Sk.listen(1)
+                clnt, addr = Sk.accept()
+                print('Address is:', addr)
+                print('I am waiting for Client...')
+                Socket_status = 'FREE'
+                pass
+            except Exception:
+                print('Try Socket Error:',Exception)
+                Socket_status = 'BUSY'
+                pass
+        print('Getting a new Connect!')
+        while Socket_status == 'FREE':
+            data = clnt.recv(1024)
+            recv_n = len(data)
+            print('Going to:', data , ' Len: ', recv_n)
+            if recv_n == 0:
+                Sk.close()
+                print('Server Socket Closed!')
+                Socket_status = 'BUSY'
+                break
+            result = Communicate(data)
+            if len(result) == 0:
+                result = 'EXD'
+            clnt.sendall(result)
+    Sk.close()
+
 
 Mashine_Name = 'P1'
 print 'Mashine_Name:',Mashine_Name
@@ -41,15 +105,16 @@ def CO2_USART_GetValue(CO2_ser,CO2_CMD):
     CO2_BUF = ''
     rpi2_usart_send(CO2_ser,CO2_CMD)
     CO2_BUF = rpi2_usart_recv(CO2_ser,7)
-                            
+
     H_Bits = ord(CO2_BUF[3])
     L_Bits = ord(CO2_BUF[4])
-                            
+
     H_Bits_H = H_Bits>>4
     H_Bits_L = H_Bits&0x0F
+
     L_Bits_H = L_Bits>>4
     L_Bits_L = L_Bits&0x0F
-                        
+
     return H_Bits_H*4096 + H_Bits_L*256 + L_Bits_H*16 + L_Bits_L
 
 # CO2_ser = CO2_USART_Initial(CO2_dev,CO2_baud) # Before you use the RPi-CO2 Sensor Please Initial the USART-ttyAMA0
@@ -173,8 +238,8 @@ def ASK_Slave(serial,cmd_data):
                 died_time = time.localtime(time.time())
                 Journal_log(log="System died at: "+ Get_time_str(':') +'.\n')
                 os.system('sync')
-                time.sleep(1)
                 print 'sudo shutdown -r now'
+                time.sleep(1)
                 os.system('sudo shutdown -r now')
 
 def Test_Motor(serial):
@@ -254,12 +319,19 @@ CO2_Status = '?'
 RPi_CO2 = False
 ser = Serial_Get()
 Motor_Control(ser,'M',0) # Close the whilt light.
+Motor_Control(ser,'O',0) # Close the UV.
 while True:
-    date = time.localtime(time.time())
-    if pre_min != date.tm_min:
-        print "minutes update..."
-        if date.tm_hour >= 8 and date.tm_hour < 19: # Judge the CO2 detect time. 8-19
-            print "Monitor CO2..."
+    threadLock = threading.Lock()
+    try:
+        thread.start_new_thread(Server_Socket,(host,port,))
+        pass
+    except e:
+        print('Thread Create Failed! Main Finished.')
+        break
+    while True:
+        date = time.localtime(time.time())
+        if date.tm_sec % 10 == 0:
+            print 'Start ENV_TABLE Updating...'
             if RPi_CO2:
                 CO2_PPM = CO2_USART_GetValue(CO2_ser,CO2_CMD) # Get the CO2-Values form Raspiberry<--->CO2_Sensor.
             else:
@@ -276,114 +348,160 @@ while True:
                 CO2_Start_Index = CO2_STR.find(':') + 1
                 CO2_End_Index = CO2_STR.find('OK')
                 CO2_PPM = int(CO2_STR[CO2_Start_Index:CO2_End_Index])
-            print Get_time_str('-',date),':',CO2_PPM,'ppm'
-            if CO2_PPM < 1000: # Judge the CO2 ppm
-                if CO2_Status != 'G':
+            CMD_Res = Motor_Control(ser,'I',0)
+            # print type(CMD_Res),':',CMD_Res
+            PH_Start_Index = CMD_Res[0].find(':') + 1
+            PH_End_Index = CMD_Res[0].find('OK')
+            PH_val = int(float(CMD_Res[0][PH_Start_Index:PH_End_Index]) * 10)
+            CMD_Res = Motor_Control(ser,'J',0)
+            # print type(CMD_Res),':',CMD_Res,
+            EC_Start_Index = CMD_Res[0].find(':') + 1
+            EC_End_Index = CMD_Res[0].find('OK')
+            EC_val = int(float(CMD_Res[0][EC_Start_Index:EC_End_Index]) * 100)
+            time_stamp = date.tm_mon * 100000000 + date.tm_mday * 1000000 + date.tm_hour * 10000 + date.tm_min * 100 + date.tm_sec
+            threadLock.acquire()
+            ENV_Status[0] = time_stamp
+            ENV_Status[1] = 20
+            ENV_Status[2] = 62
+            ENV_Status[3] = CO2_PPM
+            ENV_Status[4] = PH_val
+            ENV_Status[5] = EC_val
+            ENV_Status[6] = 100
+            threadLock.release()
+            print('ENV VALUE:',ENV_Status[0],'|',ENV_Status[1],'|',ENV_Status[2],'|',ENV_Status[3],'|',ENV_Status[4],'|',ENV_Status[5],'|',ENV_Status[6],'|',ENV_Status[7])
+        if pre_min != date.tm_min:
+            print "minutes update..."
+            if date.tm_hour % 6 == 0 and date.tm_min == 20:
+                Motor_Control(ser,'N',0) # Open the UV.
+            if date.tm_hour % 6 == 0 and date.tm_min == 40:
+                Motor_Control(ser,'O',0) # Close the UV.
+            if date.tm_hour >= 8 and date.tm_hour < 22: # Judge the CO2 detect time. 8-19
+                print "Monitor CO2..."
+                if RPi_CO2:
+                    CO2_PPM = CO2_USART_GetValue(CO2_ser,CO2_CMD) # Get the CO2-Values form Raspiberry<--->CO2_Sensor.
+                else:
                     #ser = Serial_Get()
-                    Motor_Control(ser,'G',0) # Control the CO2-Delay status:ON
+                    CMD_Res = Motor_Control(ser,'K',0) # K CO2:493OK-KCO2
                     #ser.close()
-                    CO2_Status = 'G'
-            elif CO2_PPM > 1200:
+                    if CMD_Res[1] == 0:
+                        ser.close()
+                        time.sleep(2)
+                        ser = Serial_Get()
+                        CO2_STR = "CO2:1500OK-KCO2" # the CO2 Value should bigger than 1200.
+                    else:
+                        CO2_STR = CMD_Res[0]
+                    CO2_Start_Index = CO2_STR.find(':') + 1
+                    CO2_End_Index = CO2_STR.find('OK')
+                    CO2_PPM = int(CO2_STR[CO2_Start_Index:CO2_End_Index])
+                print Get_time_str('-',date),':',CO2_PPM,'ppm'
+                if CO2_PPM < 1000: # Judge the CO2 ppm
+                    if CO2_Status != 'G':
+                        #ser = Serial_Get()
+                        Motor_Control(ser,'G',0) # Control the CO2-Delay status:ON
+                        #ser.close()
+                        CO2_Status = 'G'
+                elif CO2_PPM > 1200:
+                    if CO2_Status != 'H':
+                        #ser = Serial_Get()
+                        Motor_Control(ser,'H',0) # Control the CO2-Delay status:OFF
+                        CO2_Status = 'H'
+                        #ser.close()
+            else:
                 if CO2_Status != 'H':
                     #ser = Serial_Get()
                     Motor_Control(ser,'H',0) # Control the CO2-Delay status:OFF
                     CO2_Status = 'H'
                     #ser.close()
-        else:
-            if CO2_Status != 'H':
-                #ser = Serial_Get()
-                Motor_Control(ser,'H',0) # Control the CO2-Delay status:OFF
-                CO2_Status = 'H'
-                #ser.close()
-        min_update = 1
-        pre_min = date.tm_min # >=8 <19
-    if date.tm_hour % 1 == 0 and date.tm_min % 59 == 0 and min_update and date.tm_hour >= 7 and date.tm_hour < 19: # 19
-        ser.close() # Add line
-        time.sleep(2) # Wait for Serial been closed.
-        ser = Serial_Get()
-        Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
-        Motor_Control(ser,'L',0); # ON the whilte light.
-        Motor_Control(ser,'N',0); # OFF the GrowLight1.
-        Motor_Control(ser,'P',0); # OFF the GrowLight2.
-        CO2_Status = 'H'
-        if date.tm_hour > 19 or date.tm_hour < 8: # Set the Camera's IR Capture func.
-            GPIO.output(Camera_IR_Pin,False)
-            print 'IR mode is ON!'
-        else:
-            GPIO.output(Camera_IR_Pin,True)
-            print 'IR mode is OFF!'
-        Time_Start = time.time()
-        Time_NOW = Get_time_str('-',date)
-        Journal_log(log="Start sampling images:"+Time_NOW+'\n') # ADD-line
-        min_update = 0
-        print 'Current time:',Time_NOW
-        if date.tm_mon >= 10:
-            Current_month = str(date.tm_mon)
-        else:
-            Current_month = '0' + str(date.tm_mon)
-        if date.tm_mday >= 10:
-            Current_day = str(date.tm_mday)
-        else:
-            Current_day = '0' + str(date.tm_mday)
-        if date.tm_hour >= 10:
-            Current_hour = str(date.tm_hour)
-        else:
-            Current_hour = '0' + str(date.tm_hour)
-        if date.tm_min >= 10:
-            Current_min = str(date.tm_min)
-        else:
-            Current_min = '0' + str(date.tm_min)
-        
-        print 'image sampling...'
-        Test_Motor(ser)
-        for x in range(x_n):
-            Motor_Control(ser,Motor_CMD['x-left'],x_distance[x]) # X-axis Going ON Positive
-            for y in range(y_n):
-                if x%2 == 0 and y == 0:
-                    Motor_Control(ser,Motor_CMD['y-init'],0)
-                if x%2 == 0 and y != 0:
-                    Motor_Control(ser,Motor_CMD['y-down'],y_distance[y])
-                    y_axis_lable += 1
-                if x%2 != 0 and y != 0:
-                    Motor_Control(ser,Motor_CMD['y-up'],y_distance[-y])
-                    y_axis_lable -= 1
-                print x_axis_lable,y_axis_lable
-                path_prefix = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_data/"
-                path = path_prefix + Position[y_axis_lable][x_axis_lable]+'/'+Mashine_Name+'_'+str(Start_Date.tm_year)+Start_month+Start_day+'_'+str(date.tm_year)+Current_month+Current_day+'_'+Current_hour+Current_min+'_'+Position[y_axis_lable][x_axis_lable]+'_V'+'_NU'+'.jpg'
-                print 'Camera initilize...'
-                if os.path.exists('/dev/video0') == False:
-                    print "No vodeo0 device!Try agine."
-                    Journal_log(log="Camera Device Not Exist.")
-                    sys.exit(2)
-                Camera_Status = 'BUSY'
-                cap = cv2.VideoCapture(0)
-                while Camera_Status == 'BUSY':
-                    print "Try USB-Camera..."
-                    try:
-                        ret,frame = cap.read()
-                        cv2.imwrite(path,frame)
-                        cap.release()
-                        print 'Sample Successfully.'
-                        Camera_Status = 'FREE'
-                        pass
-                    except Exception,e:
-                        print 'Camera Wrong!'
-                        Camera_Status = 'BUSY'
-                        Journal_log(log=Get_time_str(':') + "-USBCamera Wrong? "+str(Exception)+':'+str(e)+'\n')
-                        time.sleep(10)
-                        pass
-                Journal_log(log=path[83:]+'\n') # ADD-line
-                print path
-            x_axis_lable += 1
-        Motor_Control(ser,Motor_CMD['x-init'],0)
-        Motor_Control(ser,'M',0)
-        Motor_Control(ser,'O',0)
-        Motor_Control(ser,'Q',0)
-        # ser.close()
-        print "Serial been Closed now."
-        x_axis_lable = 0
-        y_axis_lable = 0
-        Time_End = time.time()
-        TimeCost = (Time_End-Time_Start)/60
-        print '################ Time cost: ',TimeCost,' minutes. ####################'
-        Journal_log(log="Sample Finished.(TimeCost:"+str(TimeCost)+" mins)\n")
+            min_update = 1
+            pre_min = date.tm_min # >=8 <19
+        if date.tm_hour % 1 == 0 and date.tm_min % 52 == 0 and min_update and date.tm_hour >= 7 and date.tm_hour < 22: # 19
+            ser.close() # Add line
+            time.sleep(2) # Wait for Serial been closed.
+            ser = Serial_Get()
+            Motor_Control(ser,'H',0); # Control the CO2-Delay status:OFF
+            Motor_Control(ser,'L',0); # ON the whilte light.
+            # Motor_Control(ser,'N',0); # UV.
+            Motor_Control(ser,'P',0); # OFF the GrowLight2.
+            CO2_Status = 'H'
+            if date.tm_hour > 19 or date.tm_hour < 8: # Set the Camera's IR Capture func.
+                GPIO.output(Camera_IR_Pin,False)
+                print 'IR mode is ON!'
+            else:
+                GPIO.output(Camera_IR_Pin,True)
+                print 'IR mode is OFF!'
+            Time_Start = time.time()
+            Time_NOW = Get_time_str('-',date)
+            Journal_log(log="Start sampling images:"+Time_NOW+'\n') # ADD-line
+            min_update = 0
+            print 'Current time:',Time_NOW
+            if date.tm_mon >= 10:
+                Current_month = str(date.tm_mon)
+            else:
+                Current_month = '0' + str(date.tm_mon)
+            if date.tm_mday >= 10:
+                Current_day = str(date.tm_mday)
+            else:
+                Current_day = '0' + str(date.tm_mday)
+            if date.tm_hour >= 10:
+                Current_hour = str(date.tm_hour)
+            else:
+                Current_hour = '0' + str(date.tm_hour)
+            if date.tm_min >= 10:
+                Current_min = str(date.tm_min)
+            else:
+                Current_min = '0' + str(date.tm_min)
+
+            print 'image sampling...'
+            Test_Motor(ser)
+            for x in range(x_n):
+                Motor_Control(ser,Motor_CMD['x-left'],x_distance[x]) # X-axis Going ON Positive
+                for y in range(y_n):
+                    if x%2 == 0 and y == 0:
+                        Motor_Control(ser,Motor_CMD['y-init'],0)
+                    if x%2 == 0 and y != 0:
+                        Motor_Control(ser,Motor_CMD['y-down'],y_distance[y])
+                        y_axis_lable += 1
+                    if x%2 != 0 and y != 0:
+                        Motor_Control(ser,Motor_CMD['y-up'],y_distance[-y])
+                        y_axis_lable -= 1
+                    print x_axis_lable,y_axis_lable
+                    path_prefix = "/home/pi/nexgen_pro/image_sample_pro/Raspberry_Arduino_Motor_Control/image_data/"
+                    path = path_prefix + Position[y_axis_lable][x_axis_lable]+'/'+Mashine_Name+'_'+str(Start_Date.tm_year)+Start_month+Start_day+'_'+str(date.tm_year)+Current_month+Current_day+'_'+Current_hour+Current_min+'_'+Position[y_axis_lable][x_axis_lable]+'_V'+'_NU'+'.jpg'
+                    print 'Camera initilize...'
+                    if os.path.exists('/dev/video0') == False:
+                        print "No vodeo0 device!Try agine."
+                        Journal_log(log="Camera Device Not Exist.")
+                        sys.exit(2)
+                    Camera_Status = 'BUSY'
+                    cap = cv2.VideoCapture(0)
+                    time.sleep(0.2) # Unit:s
+                    while Camera_Status == 'BUSY':
+                        print "Try USB-Camera..."
+                        try:
+                            ret,frame = cap.read()
+                            cv2.imwrite(path,frame)
+                            cap.release()
+                            print 'Sample Successfully.'
+                            Camera_Status = 'FREE'
+                            pass
+                        except Exception,e:
+                            print 'Camera Wrong!'
+                            Camera_Status = 'BUSY'
+                            Journal_log(log=Get_time_str(':') + "-USBCamera Wrong? "+str(Exception)+':'+str(e)+'\n')
+                            time.sleep(10)
+                            pass
+                    Journal_log(log=path[83:]+'\n') # ADD-line
+                    print path
+                x_axis_lable += 1
+            Motor_Control(ser,Motor_CMD['x-init'],0)
+            Motor_Control(ser,'M',0)
+            # Motor_Control(ser,'O',0) # OFF UV
+            Motor_Control(ser,'Q',0)
+            # ser.close()
+            print "Serial been Closed now."
+            x_axis_lable = 0
+            y_axis_lable = 0
+            Time_End = time.time()
+            TimeCost = (Time_End-Time_Start)/60
+            print '################ Time cost: ',TimeCost,' minutes. ####################'
+            Journal_log(log="Sample Finished.(TimeCost:"+str(TimeCost)+" mins)\n")

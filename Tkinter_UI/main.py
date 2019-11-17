@@ -41,28 +41,34 @@ ecval.set('1000'+Units['ec'])
 EC_label = tk.Label(window,text='EC Value:',bg='green',font=('Arial',15),width=Lable_W,anchor=tk.W,height=2,padx=0,justify=tk.LEFT).place(x=10,y=170,anchor='nw')
 EC_val = tk.Label(window,textvariable=ecval,font=('Arial',15),width=val_W,anchor=tk.W,height=2,padx=0,justify=tk.LEFT).place(x=170,y=170,anchor='nw')
 
-count = 0
-
-def Get_LocalDB(id):
+def Get_LocalDB_NewData():
     try:
-        connection = pymysql.connect(host='localhost',user='root',password='mysql',db='Test',charset='utf8mb4',cursorclass=pymysql.cursors.DictCursor)
+        connection = pymysql.connect(host='localhost',user='root',password='',db='Test',charset='utf8mb4',cursorclass=pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             # Read a single record
-            sql = "SELECT `*` FROM `users` WHERE `id`=%s"
-            cursor.execute(sql, (id,))
+            sql = "SELECT MAX(id) FROM ENV_TABLE"
+            cursor.execute(sql)
+            id = cursor.fetchone()
+            id_val = id['MAX(id)']
+            print('Current MAX-ID:',id,type(id),id_val,type(id_val))
+            sql = "SELECT * FROM ENV_TABLE WHERE id=" + str(id_val)
+            print(sql)
+            cursor.execute(sql)
             result = cursor.fetchone()
-            print(result)
-    finally:
+            print('Current Res:',result)
         connection.close()
         return result
+    except Exception:
+        print('The MYSQL database is using by other process,Try again...')
+        pass
 
+ENV_val = ''
 def timer_base():
-    global co2val,count,Units
-    # Data = Get_LocalDB(10)
-    # print('CO2:'+co2val.get())
-    co2val.set(str(count)+Units['co2'])
-    count = count + 1
-    timer = threading.Timer(2,timer_base)
+    global Units,co2val
+    ENV_val = Get_LocalDB_NewData()
+    print('ENV_val:',ENV_val,type(ENV_val))
+    co2val.set(str(ENV_val['CO2'])+Units['co2'])
+    timer = threading.Timer(1,timer_base)
     timer.start()
 
 timer = threading.Timer(1,timer_base)
