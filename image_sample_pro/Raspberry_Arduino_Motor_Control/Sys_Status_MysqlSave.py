@@ -34,6 +34,8 @@ def Get_time_str(separator,struct=''):
         return str(time_struct_val.tm_year) + separator + str(time_struct_val.tm_mon) + separator + str(time_struct_val.tm_mday)+ separator + str(time_struct_val.tm_hour) + separator + str(time_struct_val.tm_min) + separator + str(time_struct_val.tm_sec)
     return str(struct.tm_year) + separator + str(struct.tm_mon) + separator + str(struct.tm_mday)+ separator + str(struct.tm_hour) + separator + str(struct.tm_min) + separator + str(struct.tm_sec)
 
+Journal_log(log='Mysql-Save thread Started.(' + Get_time_str(':') + ')\n')
+
 def Insert_LocalDB(data):
 # Connect to the database
     try:
@@ -46,7 +48,7 @@ def Insert_LocalDB(data):
         # connection is not autocommit by default. So you must commit to save
         # your changes.
         connection.commit()
-        print('Insert Successful.')
+        # print('Insert Successful.')
         connection.close()
     except Exception:
         print('The MYSQL database is using by other process,Try again...')
@@ -61,11 +63,9 @@ def Get_LocalDB(id):
             sql = "SELECT `*` FROM `users` WHERE `id`=%s"
             cursor.execute(sql, (id,))
             result = cursor.fetchone()
-            print(result)
+            # print(result)
     finally:
         connection.close()
-
-count = 0
 
 # Connect Socket
 S = socket.socket()
@@ -77,10 +77,10 @@ while True:
     cmd = 'G'
     if cmd == '':
         continue
-    print 'Sending Command!'
+    # print 'Sending Command!'
     S.sendall(cmd)
     data = S.recv(1024)
-    print data
+    # print data
     if data == 'EXD':
         continue
     data_list = []
@@ -88,14 +88,10 @@ while True:
     for i in range(8):
         data_list.append((int(data_str_list[i])))
         # print data_list[i],' type:',type(data_list[i])
-    print data_list
-    if count == 5:
-        Journal_log('Insert MYSQL DB(' + Get_time_str('-') + '):' + data_str_list[0])
-        count = 0
+    # print data_list
     Insert_LocalDB(data_list)
     # print 'Insert Successful.'
     time.sleep(2)
-    count = count + 1
 '''
     time.sleep(1)
     T = time.localtime(time.time())
