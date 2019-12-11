@@ -51,8 +51,8 @@ Change the pwd into the HEX-file'folder(HEXOfArduino) firstly.
    * And then you need to insert your aws conut infomations:
    ```
    $ aws configure
-   AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
-   AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+   AWS Access Key ID [None]: ***A***FODNN***AM***
+   AWS Secret Access Key [None]: ***lr***nFEMI/K7***NG/bPxRfiCY***MPLEKEY
    Default region name [None]: us-west-2
    Default output format [None]: json
    ```
