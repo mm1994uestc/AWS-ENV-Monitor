@@ -330,6 +330,8 @@ Motor_Control(ser,'O',0) # Close the UV.
 CO2_PPM = 0
 PH_val = 0
 EC_val = 0
+Humi_val = 0
+Temp_val = 0
 while True:
     threadLock = threading.Lock()
     try:
@@ -383,11 +385,31 @@ while True:
                 Journal_log(log=Get_time_str(':')+'-EC Val Error:'+f_str+'\n')
                 EC_val = 111
 
+            CMD_Res = Motor_Control(ser,'Y',0)
+            Humi_Start_Index = CMD_Res[0].find(':') + 1
+            Humi_End_Index = CMD_Res[0].find('OK')
+            f_str = CMD_Res[0][Humi_Start_Index:Humi_End_Index]
+            if isfloat(f_str) == 1:
+                Humi_val = int(float(CMD_Res[0][Humi_Start_Index:Humi_End_Index]) * 100)
+            else:
+                Journal_log(log=Get_time_str(':')+'-Humi Val Error:'+f_str+'\n')
+                Humi_val = 9999
+
+            CMD_Res = Motor_Control(ser,'Z',0)
+            Temp_Start_Index = CMD_Res[0].find(':') + 1
+            Temp_End_Index = CMD_Res[0].find('OK')
+            f_str = CMD_Res[0][Temp_Start_Index:Temp_End_Index]
+            if isfloat(f_str) == 1:
+                Temp_val = int(float(CMD_Res[0][Temp_Start_Index:Temp_End_Index]) * 100)
+            else:
+                Journal_log(log=Get_time_str(':')+'-Temp Val Error:'+f_str+'\n')
+                Temp_val = 9999
+
             time_stamp = date.tm_mon * 100000000 + date.tm_mday * 1000000 + date.tm_hour * 10000 + date.tm_min * 100 + date.tm_sec
             threadLock.acquire()
             ENV_Status[0] = time_stamp
-            ENV_Status[1] = 20
-            ENV_Status[2] = 62
+            ENV_Status[1] = Temp_val
+            ENV_Status[2] = Humi_val
             ENV_Status[3] = CO2_PPM
             ENV_Status[4] = PH_val
             ENV_Status[5] = EC_val

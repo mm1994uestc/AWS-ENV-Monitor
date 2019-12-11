@@ -42,12 +42,12 @@ label_val_div = tk.Canvas(window,bg='blue',height=200,width=6).place(x=140,y=10,
 tempval = tk.StringVar()
 tempval.set('25'+Units['temp'])
 Temp_label = tk.Label(window,text='Tempratue:',bg='green',font=('Arial',15),width=Lable_W,anchor=tk.W,height=2,padx=0,justify=tk.LEFT).place(x=10,y=10,anchor='nw')
-Temp_val = tk.Label(window,textvariable=tempval,font=('Arial',15),width=val_W,height=2,padx=0,justify=tk.LEFT).place(x=170,y=10,anchor='nw')
+Temp_val = tk.Label(window,textvariable=tempval,font=('Arial',15),width=val_W,height=2,padx=0,justify=tk.LEFT).place(x=180,y=10,anchor='nw')
 
 humival = tk.StringVar()
 humival.set('65'+Units['humi'])
 Humi_label = tk.Label(window,text='Humidity:',bg='green',font=('Arial',15),width=Lable_W,anchor=tk.W,height=2,padx=0,justify=tk.LEFT).place(x=10,y=50,anchor='nw')
-Humi_val = tk.Label(window,textvariable=humival,font=('Arial',15),width=val_W,height=2,padx=0,justify=tk.LEFT).place(x=170,y=50,anchor='nw')
+Humi_val = tk.Label(window,textvariable=humival,font=('Arial',15),width=val_W,height=2,padx=0,justify=tk.LEFT).place(x=180,y=50,anchor='nw')
 
 co2val = tk.StringVar()
 co2val.set('888'+Units['co2'])
@@ -94,9 +94,11 @@ def timer_base():
     global Units,co2val
     ENV_val = Get_LocalDB_NewData()
     # print('ENV_val:',ENV_val,type(ENV_val))
+    tempval.set(str(float(ENV_val['Temp'])/100.0)+Units['temp'])
+    humival.set(str(float(ENV_val['Humi'])/100.0)+Units['humi'])
     co2val.set(str(ENV_val['CO2'])+Units['co2'])
-    phval.set(str(float(ENV_val['PH'])/10 )+Units['ph'])
-    ecval.set(str(float(ENV_val['EC'])/100)+Units['ec'])
+    phval.set(str(float(ENV_val['PH'])/10.0 )+Units['ph'])
+    ecval.set(str(float(ENV_val['EC'])/100.0)+Units['ec'])
     timer = threading.Timer(1,timer_base)
     timer.start()
 
