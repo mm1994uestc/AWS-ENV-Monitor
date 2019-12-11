@@ -343,8 +343,8 @@ void loop() {
     if(Buffers[0] == 'V') {DelayPin_Control(DosingPump2_Pin,0);delay(1500); Serial3.println("OK-V");}
     if(Buffers[0] == 'W') {DelayPin_Control(DosingPump3_Pin,1);delay(1500); Serial3.println("OK-W");}
     if(Buffers[0] == 'X') {DelayPin_Control(DosingPump3_Pin,0);delay(1500); Serial3.println("OK-X");}
-    if(Buffers[0] == 'Y') {Humi = SI7021_Get_Humi();delay(1500); Serial3.print(Humi,2);Serial3.println("OK-Y");}
-    if(Buffers[0] == 'Z') {Temp = SI7021_Get_Temp();delay(1500); Serial3.print(Temp,2);Serial3.println("OK-Z");}
+    if(Buffers[0] == 'Y') {Humi = SI7021_Get_Humi();delay(1000); Serial3.print(" Humi:"); Serial3.print(Humi,2);Serial3.println("OK-Y");}
+    if(Buffers[0] == 'Z') {Temp = SI7021_Get_Temp();delay(1000); Serial3.print(" Temp:"); Serial3.print(Temp,2);Serial3.println("OK-Z");}
     Update_Flag = 0;
   }
 }
