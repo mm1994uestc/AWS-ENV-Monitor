@@ -1,6 +1,10 @@
 #include <GravityTDS.h>
 #include <Wire.h>
 
+#define serial Serial3
+
+#define ADDRESS_24C256 0x50
+
 #define ADDRESS_SI7021 0x40
 #define MEASURE_RH_HOLD 0xE5
 #define READ_T_FROM_PRE_RH_MEASUREMENT 0xE0
@@ -57,6 +61,40 @@ void DelayPin_initial(int *PinList,int len)
 void DelayPin_Control(int PinNum,int state)
 {
   digitalWrite(PinNum,state);
+}
+
+char EEPROM_24C256_ReadBytes(char *data,word addr,int len)
+{
+  int i=0;
+  char *tmp = data;
+  char addr_h,addr_l;
+
+  addr_h = (addr >> 8) & 0xFF;
+  addr_l = addr & 0xFF;
+  Wire.beginTransmission(ADDRESS_24C256);
+  Wire.write(addr_h); Wire.write(addr_l);
+  Wire.beginTransmission(ADDRESS_24C256);
+  Wire.requestFrom(ADDRESS_24C256, len);
+  if(Wire.available() >= len){
+    for(i=0;i<len;i++) {
+      *(tmp+i) = Wire.read();
+    }
+  }
+  Wire.endTransmission();
+  return 1;
+}
+char EEPROM_24C256_WriteByte(char data,word addr)
+{
+  int i=0;
+  char addr_h,addr_l;
+
+  addr_h = (addr >> 8) & 0xFF;
+  addr_l = addr & 0xFF;
+  Wire.beginTransmission(ADDRESS_24C256);
+  Wire.write(addr_h); Wire.write(addr_l);
+  Wire.write(data);
+  Wire.endTransmission();
+  return 1;
 }
 
 void x_step(boolean dir,int steps)
@@ -221,6 +259,7 @@ float Get_TDS_Val(void)
   gravityTds.update();  //sample and calculate 
   return gravityTds.getTdsValue();  // then get the value
 }
+
 float SI7021_Get_Temp(void)
 {
   byte buffer[] = {0, 0};
@@ -289,7 +328,7 @@ int CO2_USART_GetValue(void)
 
 void setup() {
   // put your setup code here, to run once:
-  Serial3.begin(9600);
+  serial.begin(9600);
   CO2_USART_Initial(9600);
   DelayPin_initial(Delay_PinList,Delay_Device);
   Wire.begin();
@@ -310,41 +349,41 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  while(Serial3.available() != 0){
-      Serial3.readBytes(Buffers,CMD_DATA_Len);
+  while(serial.available() != 0){
+      serial.readBytes(Buffers,CMD_DATA_Len);
       Update_Flag = 1;
   }
   
   if(Update_Flag == 1){
-    if(Buffers[0] == 'A') {current_steps = int(float(Buffers[1])/x_mm_pp); x_step(1,current_steps);  Serial3.println("OK-A");} // 向右后退
-    if(Buffers[0] == 'B') {current_steps = int(float(Buffers[1])/x_mm_pp); x_step(0,current_steps);  Serial3.println("OK-B");} // 向左前进
-    if(Buffers[0] == 'C') {current_steps = int(float(Buffers[1])/y_mm_pp); y_step(1,current_steps);  Serial3.println("OK-C");} // 向下前进
-    if(Buffers[0] == 'D') {current_steps = int(float(Buffers[1])/y_mm_pp); y_step(0,current_steps);  Serial3.println("OK-D");} // 向上后退
-    if(Buffers[0] == 'E') {x_initial();  delay(300); Serial3.println("OK-E");}
-    if(Buffers[0] == 'F') {y_initial();  delay(300); Serial3.println("OK-F");}
-    if(Buffers[0] == 'S') {Stop_Motor(); delay(300); Serial3.println("OK-S");}
-    if(Buffers[0] == 'G') {digitalWrite(CO2_Control_Pin,LOW); delay(1000); Serial3.println("OK-GCO2 ON");}
-    if(Buffers[0] == 'H') {digitalWrite(CO2_Control_Pin,HIGH); delay(1000); Serial3.println("OK-HCO2 OFF");}
-    if(Buffers[0] == 'I') {Current_PH = Get_PH_Val(PH_SensorPin); delay(1000); Serial3.print(" PH:");Serial3.print(Current_PH,2); Serial3.println("OK-I");}
-    if(Buffers[0] == 'J') {Current_EC = Get_EC_Val(); delay(1000); Serial3.print(" EC:");Serial3.print(Current_EC,2);Serial3.println("OK-J");}
-    if(Buffers[0] == 'K') {Current_CO = CO2_USART_GetValue(); delay(1000); Serial3.print(" CO2:");Serial3.print(Current_CO,DEC);Serial3.println("OK-K");}
+    if(Buffers[0] == 'A') {current_steps = int(float(Buffers[1])/x_mm_pp); x_step(1,current_steps);  serial.println("OK-A");} // 向右后退
+    if(Buffers[0] == 'B') {current_steps = int(float(Buffers[1])/x_mm_pp); x_step(0,current_steps);  serial.println("OK-B");} // 向左前进
+    if(Buffers[0] == 'C') {current_steps = int(float(Buffers[1])/y_mm_pp); y_step(1,current_steps);  serial.println("OK-C");} // 向下前进
+    if(Buffers[0] == 'D') {current_steps = int(float(Buffers[1])/y_mm_pp); y_step(0,current_steps);  serial.println("OK-D");} // 向上后退
+    if(Buffers[0] == 'E') {x_initial();  delay(300); serial.println("OK-E");}
+    if(Buffers[0] == 'F') {y_initial();  delay(300); serial.println("OK-F");}
+    if(Buffers[0] == 'S') {Stop_Motor(); delay(300); serial.println("OK-S");}
+    if(Buffers[0] == 'G') {digitalWrite(CO2_Control_Pin,LOW); delay(1000); serial.println("OK-GCO2 ON");}
+    if(Buffers[0] == 'H') {digitalWrite(CO2_Control_Pin,HIGH); delay(1000); serial.println("OK-HCO2 OFF");}
+    if(Buffers[0] == 'I') {Current_PH = Get_PH_Val(PH_SensorPin); delay(1000); serial.print(" PH:");serial.print(Current_PH,2); serial.println("OK-I");}
+    if(Buffers[0] == 'J') {Current_EC = Get_EC_Val(); delay(1000); serial.print(" EC:");serial.print(Current_EC,2);serial.println("OK-J");}
+    if(Buffers[0] == 'K') {Current_CO = CO2_USART_GetValue(); delay(1000); serial.print(" CO2:");serial.print(Current_CO,DEC);serial.println("OK-K");}
     
     // whiteLight_Pin,GorwLight1_Pin,GorwLight2_Pin,DosingPump1_Pin,DosingPump2_Pin,DosingPump3_Pin;
-    if(Buffers[0] == 'L') {DelayPin_Control(whiteLight_Pin,1);delay(1500); Serial3.println("OK-L");}
-    if(Buffers[0] == 'M') {DelayPin_Control(whiteLight_Pin,0);delay(1500); Serial3.println("OK-M");}
-    if(Buffers[0] == 'N') {DelayPin_Control(GorwLight1_Pin,1);delay(1500); Serial3.println("OK-N");}
-    if(Buffers[0] == 'O') {DelayPin_Control(GorwLight1_Pin,0);delay(1500); Serial3.println("OK-O");}
-    if(Buffers[0] == 'P') {DelayPin_Control(GorwLight2_Pin,1);delay(1500); Serial3.println("OK-P");}
-    if(Buffers[0] == 'Q') {DelayPin_Control(GorwLight2_Pin,0);delay(1500); Serial3.println("OK-Q");}
+    if(Buffers[0] == 'L') {DelayPin_Control(whiteLight_Pin,1);delay(1500); serial.println("OK-L");}
+    if(Buffers[0] == 'M') {DelayPin_Control(whiteLight_Pin,0);delay(1500); serial.println("OK-M");}
+    if(Buffers[0] == 'N') {DelayPin_Control(GorwLight1_Pin,1);delay(1500); serial.println("OK-N");}
+    if(Buffers[0] == 'O') {DelayPin_Control(GorwLight1_Pin,0);delay(1500); serial.println("OK-O");}
+    if(Buffers[0] == 'P') {DelayPin_Control(GorwLight2_Pin,1);delay(1500); serial.println("OK-P");}
+    if(Buffers[0] == 'Q') {DelayPin_Control(GorwLight2_Pin,0);delay(1500); serial.println("OK-Q");}
     
-    if(Buffers[0] == 'R') {DelayPin_Control(DosingPump1_Pin,1);delay(1500); Serial3.println("OK-R");}
-    if(Buffers[0] == 'T') {DelayPin_Control(DosingPump1_Pin,0);delay(1500); Serial3.println("OK-T");}
-    if(Buffers[0] == 'U') {DelayPin_Control(DosingPump2_Pin,1);delay(1500); Serial3.println("OK-U");}
-    if(Buffers[0] == 'V') {DelayPin_Control(DosingPump2_Pin,0);delay(1500); Serial3.println("OK-V");}
-    if(Buffers[0] == 'W') {DelayPin_Control(DosingPump3_Pin,1);delay(1500); Serial3.println("OK-W");}
-    if(Buffers[0] == 'X') {DelayPin_Control(DosingPump3_Pin,0);delay(1500); Serial3.println("OK-X");}
-    if(Buffers[0] == 'Y') {Humi = SI7021_Get_Humi();delay(1000); Serial3.print(" Humi:"); Serial3.print(Humi,2);Serial3.println("OK-Y");}
-    if(Buffers[0] == 'Z') {Temp = SI7021_Get_Temp();delay(1000); Serial3.print(" Temp:"); Serial3.print(Temp,2);Serial3.println("OK-Z");}
+    if(Buffers[0] == 'R') {DelayPin_Control(DosingPump1_Pin,1);delay(1500); serial.println("OK-R");}
+    if(Buffers[0] == 'T') {DelayPin_Control(DosingPump1_Pin,0);delay(1500); serial.println("OK-T");}
+    if(Buffers[0] == 'U') {DelayPin_Control(DosingPump2_Pin,1);delay(1500); serial.println("OK-U");}
+    if(Buffers[0] == 'V') {DelayPin_Control(DosingPump2_Pin,0);delay(1500); serial.println("OK-V");}
+    if(Buffers[0] == 'W') {DelayPin_Control(DosingPump3_Pin,1);delay(1500); serial.println("OK-W");}
+    if(Buffers[0] == 'X') {DelayPin_Control(DosingPump3_Pin,0);delay(1500); serial.println("OK-X");}
+    if(Buffers[0] == 'Y') {Humi = SI7021_Get_Humi();delay(1000); serial.print(" Humi:"); serial.print(Humi,2);serial.println("OK-Y");}
+    if(Buffers[0] == 'Z') {Temp = SI7021_Get_Temp();delay(1000); serial.print(" Temp:"); serial.print(Temp,2);serial.println("OK-Z");}
     Update_Flag = 0;
   }
 }
