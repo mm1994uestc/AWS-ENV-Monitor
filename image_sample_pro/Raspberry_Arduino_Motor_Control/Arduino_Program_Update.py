@@ -26,11 +26,14 @@ print 'Finding USB-Device...'
 USB_Device = Serial_Get()
 print 'USB Device:',USB_Device
 
-print 'Downloading BIN-FILE...'
-s3 = boto3.resource('s3')
+if len(sys.argv) == 3 and sys.argv[2] == '1':
+    print 'Downloading BIN-FILE...'
+    s3 = boto3.resource('s3')
 
-with open('Raspberry_Arduino_Motor_Control.ino.hex','wb') as data:
-    s3.meta.client.download_fileobj('arduino-program-update','Raspberry_Arduino_Motor_Control.ino.hex',data)
+    with open('Raspberry_Arduino_Motor_Control.ino.hex','wb') as data:
+        s3.meta.client.download_fileobj('arduino-program-update','Raspberry_Arduino_Motor_Control.ino.hex',data)
+else:
+    print 'Use Local BIN-FILE...'
 
 print 'BIN FileName:','Raspberry_Arduino_Motor_Control.ino.hex'
 
